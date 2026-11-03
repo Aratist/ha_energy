@@ -1,0 +1,154 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Power measurements",
+        "description": "Provide either the grid power (positive when importing, negative when exporting), or the house consumption and solar production.",
+        "data": {
+          "grid_power": "Grid power",
+          "grid_invert": "Invert grid power sign",
+          "solar_power": "Solar production",
+          "house_power": "House consumption"
+        }
+      },
+      "loads": {
+        "title": "Controlled devices",
+        "description": "Select at least one device. Power sensors are optional but improve accuracy.",
+        "data": {
+          "water_heater_switch": "Water heater: switch",
+          "water_heater_power": "Water heater: power sensor",
+          "pool_switch": "Pool: pump switch",
+          "pool_power": "Pool: power sensor",
+          "pool_temperature": "Pool: water temperature",
+          "climate": "Air conditioning / heating"
+        }
+      },
+      "settings": {
+        "title": "Settings",
+        "data": {
+          "water_heater_nominal_power": "Water heater: rated power",
+          "water_heater_min_hours": "Water heater: guaranteed daily runtime",
+          "pool_nominal_power": "Pool: pump power",
+          "pool_hours": "Pool: daily filtration (without temperature sensor)",
+          "pool_min_hours": "Pool: minimum filtration",
+          "pool_max_hours": "Pool: maximum filtration",
+          "climate_boost_power": "Climate: estimated boost power",
+          "climate_offset": "Climate: boost setpoint offset",
+          "offpeak_enabled": "Catch up during off-peak hours",
+          "offpeak_start": "Off-peak start",
+          "offpeak_end": "Off-peak end (daily cycle start)",
+          "margin": "Surplus safety margin",
+          "max_import": "Tolerated grid import before stopping a device",
+          "min_on_minutes": "Minimum on time",
+          "min_off_minutes": "Minimum off time"
+        }
+      }
+    },
+    "error": {
+      "no_power_source": "Provide the grid power, or the house consumption.",
+      "no_load": "Select at least one device to control."
+    },
+    "abort": {
+      "already_configured": "The energy manager is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "user": {
+        "title": "Power measurements",
+        "data": {
+          "grid_power": "Grid power",
+          "grid_invert": "Invert grid power sign",
+          "solar_power": "Solar production",
+          "house_power": "House consumption"
+        }
+      },
+      "loads": {
+        "title": "Controlled devices",
+        "data": {
+          "water_heater_switch": "Water heater: switch",
+          "water_heater_power": "Water heater: power sensor",
+          "pool_switch": "Pool: pump switch",
+          "pool_power": "Pool: power sensor",
+          "pool_temperature": "Pool: water temperature",
+          "climate": "Air conditioning / heating"
+        }
+      },
+      "settings": {
+        "title": "Settings",
+        "data": {
+          "water_heater_nominal_power": "Water heater: rated power",
+          "water_heater_min_hours": "Water heater: guaranteed daily runtime",
+          "pool_nominal_power": "Pool: pump power",
+          "pool_hours": "Pool: daily filtration (without temperature sensor)",
+          "pool_min_hours": "Pool: minimum filtration",
+          "pool_max_hours": "Pool: maximum filtration",
+          "climate_boost_power": "Climate: estimated boost power",
+          "climate_offset": "Climate: boost setpoint offset",
+          "offpeak_enabled": "Catch up during off-peak hours",
+          "offpeak_start": "Off-peak start",
+          "offpeak_end": "Off-peak end (daily cycle start)",
+          "margin": "Surplus safety margin",
+          "max_import": "Tolerated grid import before stopping a device",
+          "min_on_minutes": "Minimum on time",
+          "min_off_minutes": "Minimum off time"
+        }
+      }
+    },
+    "error": {
+      "no_power_source": "Provide the grid power, or the house consumption.",
+      "no_load": "Select at least one device to control."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "grid_power": { "name": "Grid power" },
+      "available_power": { "name": "Available power" },
+      "water_heater_status": {
+        "name": "Water heater status",
+        "state": {
+          "surplus": "Solar surplus",
+          "forced": "Forced",
+          "done": "Done",
+          "waiting": "Waiting for surplus",
+          "hold": "Hold (anti short-cycle)",
+          "manual": "Manual",
+          "inactive": "Unavailable"
+        }
+      },
+      "pool_status": {
+        "name": "Pool status",
+        "state": {
+          "surplus": "Solar surplus",
+          "forced": "Forced",
+          "done": "Filtration done",
+          "waiting": "Waiting for surplus",
+          "hold": "Hold (anti short-cycle)",
+          "manual": "Manual",
+          "inactive": "Unavailable"
+        }
+      },
+      "climate_status": {
+        "name": "Climate status",
+        "state": {
+          "surplus": "Solar boost",
+          "forced": "Forced",
+          "done": "Done",
+          "waiting": "Normal setpoint",
+          "hold": "Hold (anti short-cycle)",
+          "manual": "Manual",
+          "inactive": "Inactive (off or unsupported mode)"
+        }
+      },
+      "water_heater_runtime": { "name": "Water heater: heating today" },
+      "pool_runtime": { "name": "Pool: filtration today" },
+      "pool_required": { "name": "Pool: required filtration" }
+    },
+    "switch": {
+      "master_auto": { "name": "Automatic control" },
+      "water_heater_auto": { "name": "Water heater automatic" },
+      "pool_auto": { "name": "Pool automatic" },
+      "climate_auto": { "name": "Climate automatic" }
+    }
+  }
+}
