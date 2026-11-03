@@ -208,14 +208,15 @@ class ApplianceSensor(EnergyManagerEntity, SensorEntity):
     _attr_device_class = SensorDeviceClass.POWER
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = UnitOfPower.WATT
-    _attr_translation_key = "appliance_power"
 
     def __init__(
         self, coordinator: EnergyManagerCoordinator, key: str, name: str
     ) -> None:
         super().__init__(coordinator, f"appliance_{key}")
         self._key = key
-        self._attr_translation_placeholders = {"name": name}
+        # Nom direct : un placeholder de traduction donnait « Puissance » seul.
+        self._attr_translation_key = None
+        self._attr_name = f"{name} : puissance"
 
     @property
     def native_value(self) -> float | None:
