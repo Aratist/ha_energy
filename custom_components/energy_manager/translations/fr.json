@@ -342,9 +342,6 @@
       },
       "pool_required": {
         "name": "Piscine : filtration requise"
-      },
-      "appliance_power": {
-        "name": "{name} : puissance"
       }
     },
     "select": {

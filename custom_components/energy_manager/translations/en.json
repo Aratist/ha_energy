@@ -332,9 +332,6 @@
       },
       "pool_required": {
         "name": "Pool: required filtration"
-      },
-      "appliance_power": {
-        "name": "{name}: power"
       }
     },
     "select": {
