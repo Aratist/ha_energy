@@ -9,10 +9,16 @@ déjà dans Home Assistant (compteur Linky/pince, onduleur, prises ou relais, th
 
 ## Installation
 
-1. Copier `custom_components/energy_manager` dans le dossier `config/custom_components/`
-   de Home Assistant (ou ajouter ce dépôt comme dépôt personnalisé HACS).
-2. Redémarrer Home Assistant.
-3. *Paramètres → Appareils et services → Ajouter une intégration → Gestionnaire d'énergie solaire*.
+Via HACS (recommandé) :
+
+1. *HACS → ⋮ → Dépôts personnalisés*, ajouter `https://github.com/Aratist/ha_energy`
+   avec le type *Intégration*.
+2. Rechercher *Gestionnaire d'énergie solaire* dans HACS, puis *Télécharger*.
+3. Redémarrer Home Assistant.
+4. *Paramètres → Appareils et services → Ajouter une intégration → Gestionnaire d'énergie solaire*.
+
+Manuellement : copier `custom_components/energy_manager` dans `config/custom_components/`,
+puis reprendre à l'étape 3.
 
 Home Assistant 2024.12 ou plus récent est requis.
 
