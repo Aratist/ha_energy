@@ -4,15 +4,26 @@ from datetime import datetime, time
 import importlib.util
 from pathlib import Path
 import sys
+import types
 
 # engine.py est chargé directement : le paquet importe Home Assistant.
-_PATH = Path(__file__).parents[1] / "custom_components/energy_manager/engine.py"
-_spec = importlib.util.spec_from_file_location("engine", _PATH)
-engine = importlib.util.module_from_spec(_spec)
-sys.modules["engine"] = engine
-_spec.loader.exec_module(engine)
+_DIR = Path(__file__).parents[1] / "custom_components/energy_manager"
+
+
+def _load(name, filename):
+    spec = importlib.util.spec_from_file_location(f"energy_manager.{name}", _DIR / filename)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[f"energy_manager.{name}"] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+sys.modules.setdefault("energy_manager", types.ModuleType("energy_manager"))
+const = _load("const", "const.py")
+engine = _load("engine", "engine.py")
 
 Load = engine.Load
+Tariff = engine.Tariff
 
 
 def load(key, nominal=1000, *, on=False, current=None, since=3600, **kw):
@@ -28,16 +39,43 @@ def load(key, nominal=1000, *, on=False, current=None, since=3600, **kw):
     )
 
 
-def run(loads, grid, *, offpeak=False, left=12 * 3600, margin=100, max_import=300):
+def run(loads, grid, *, offpeak=False, left=12 * 3600, k=1.0, margin=100, max_import=300):
     available = engine.available_power(grid, loads)
     return engine.decide(
         loads,
         available,
         in_offpeak=offpeak,
         seconds_left_in_cycle=left,
+        rentable_fraction=k,
         margin=margin,
         max_import=max_import,
     )
+
+
+# --- Tarifs ---------------------------------------------------------------
+
+
+def test_rentable_fraction_without_export():
+    # 1 - HC/HP : exactement la règle « part solaire minimale rentable »
+    assert Tariff(peak=0.2146, offpeak=0.1696).rentable_fraction == (
+        (0.2146 - 0.1696) / 0.2146
+    )
+
+
+def test_rentable_fraction_with_export_is_higher():
+    without = Tariff(0.25, 0.20).rentable_fraction
+    with_export = Tariff(0.25, 0.20, export=0.10).rentable_fraction
+    assert with_export > without
+    assert Tariff(0.25, 0.25).rentable_fraction == 0.0
+    assert Tariff(0.10, 0.05, export=0.20).rentable_fraction == 0.0
+
+
+def test_price_by_period():
+    tariff = Tariff(0.25, 0.20)
+    assert tariff.price(False) == 0.25 and tariff.price(True) == 0.20
+
+
+# --- Répartition ----------------------------------------------------------
 
 
 def test_surplus_allocated_by_priority():
@@ -47,23 +85,31 @@ def test_surplus_allocated_by_priority():
     assert d["clim"].reason == engine.REASON_WAITING
 
 
-def test_lower_priority_skipped_if_too_big_but_next_fits():
-    loads = [load("wh", 2000), load("pool", 800)]
-    d = run(loads, grid=-1000)
-    assert not d["wh"].on and d["pool"].on
+def test_partial_coverage_starts_when_rentable():
+    # k = 25 % : 500 W de surplus suffisent à lancer un chauffe-eau de 2 kW
+    loads = [load("wh", 2000)]
+    assert not run(loads, grid=-550, k=1.0)["wh"].on
+    assert run(loads, grid=-650, k=0.25)["wh"].on
 
 
-def test_running_load_counts_back_into_available():
-    # Le chauffe-eau tourne (2 kW) et on importe 200 W : on le garde (hystérésis).
+def test_load_specific_fraction_overrides_tariff():
+    # Le boost clim exige une couverture complète même si le tarif est permissif
+    loads = [load("clim", 1000, start_fraction=1.0, keep_fraction=0.6)]
+    assert not run(loads, grid=-600, k=0.25)["clim"].on
+    assert run(loads, grid=-1200, k=0.25)["clim"].on
+
+
+def test_keep_fraction_hysteresis():
+    loads = [load("clim", 1000, on=True, start_fraction=1.0, keep_fraction=0.6)]
+    # 1 kW consommé, 300 W importés : 700 W couverts ≥ 600 W → on garde
+    assert run(loads, grid=300, max_import=0)["clim"].on
+    assert not run(loads, grid=500, max_import=0)["clim"].on
+
+
+def test_running_load_kept_within_max_import():
     loads = [load("wh", 2000, on=True)]
-    d = run(loads, grid=200)
-    assert d["wh"].on and d["wh"].reason == engine.REASON_SURPLUS
-
-
-def test_running_load_stopped_when_import_too_high():
-    loads = [load("wh", 2000, on=True)]
-    d = run(loads, grid=800)
-    assert not d["wh"].on
+    assert run(loads, grid=200)["wh"].on
+    assert not run(loads, grid=800)["wh"].on
 
 
 def test_anti_short_cycle_holds_state():
@@ -89,7 +135,6 @@ def test_forced_when_cycle_ends_soon_without_offpeak():
 
 
 def test_forced_load_consumes_budget_first():
-    # Piscine forcée (priorité basse) : le chauffe-eau ne démarre pas sur le surplus restant.
     loads = [load("wh", 2000), load("pool", 800, remaining_s=3600)]
     d = run(loads, grid=-2500, offpeak=True)
     assert d["pool"].reason == engine.REASON_FORCED
@@ -103,9 +148,39 @@ def test_done_load_is_stopped():
 
 
 def test_missing_measurement_keeps_surplus_loads_off():
-    loads = [load("pool", 800)]
-    d = run(loads, grid=None)
-    assert not d["pool"].on
+    assert not run([load("pool", 800)], grid=None)["pool"].on
+
+
+# --- Estimation de la consommation ----------------------------------------
+
+
+def test_estimate_consumption():
+    apps = [
+        engine.Appliance("a", "Four", nominal=2000, is_on=True),
+        engine.Appliance("b", "Lave-linge", nominal=1500, is_on=False),
+        engine.Appliance("c", "Jacuzzi", nominal=0, is_on=None, measured=2126),
+        engine.Appliance("d", "Inconnu", nominal=500, is_on=None),
+    ]
+    assert engine.estimate_consumption(250, apps) == 250 + 2000 + 2126
+
+
+# --- Saisons ----------------------------------------------------------------
+
+
+def test_season_auto_and_forced():
+    assert engine.season_for(1, engine.SEASON_AUTO) == engine.SEASON_WINTER
+    assert engine.season_for(7, engine.SEASON_AUTO) == engine.SEASON_SUMMER
+    assert engine.season_for(1, engine.SEASON_SUMMER) == engine.SEASON_SUMMER
+
+
+def test_priority_swaps_climate_and_pool():
+    winter, summer = engine.PRIORITY[engine.SEASON_WINTER], engine.PRIORITY[engine.SEASON_SUMMER]
+    assert winter.index(const.LOAD_CLIMATE) < winter.index(const.LOAD_POOL)
+    assert summer.index(const.LOAD_POOL) < summer.index(const.LOAD_CLIMATE)
+    assert set(winter) == set(summer) == set(const.LOADS)
+
+
+# --- Utilitaires ------------------------------------------------------------
 
 
 def test_in_window_across_midnight():
@@ -128,3 +203,9 @@ def test_pool_required_hours():
     assert engine.pool_required_hours(24, 6, 2, 14) == 12
     assert engine.pool_required_hours(32, 6, 2, 14) == 14
     assert engine.pool_required_hours(2, 6, 2, 14) == 2
+
+
+def test_clamp():
+    assert engine.clamp(17, 19, 23) == 19
+    assert engine.clamp(25, 19, 23) == 23
+    assert engine.clamp(21, 19, 23) == 21

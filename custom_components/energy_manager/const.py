@@ -7,7 +7,7 @@ from datetime import timedelta
 DOMAIN = "energy_manager"
 UPDATE_INTERVAL = timedelta(seconds=30)
 
-# Charges pilotées (l'ordre définit la priorité)
+# Charges pilotées
 LOAD_WATER_HEATER = "water_heater"
 LOAD_POOL = "pool"
 LOAD_CLIMATE = "climate"
@@ -19,6 +19,7 @@ CONF_GRID_POWER = "grid_power"
 CONF_GRID_INVERT = "grid_invert"
 CONF_SOLAR_POWER = "solar_power"
 CONF_HOUSE_POWER = "house_power"
+CONF_BASELINE = "baseline_power"  # talon de la maison pour l'estimation
 
 # Chauffe-eau
 CONF_WH_SWITCH = "water_heater_switch"
@@ -37,13 +38,45 @@ CONF_POOL_MAX_HOURS = "pool_max_hours"
 
 # Climatisation / chauffage
 CONF_CLIMATE = "climate"
+CONF_CLIMATE_POWER_SENSOR = "climate_power_sensor"
 CONF_CLIMATE_POWER = "climate_boost_power"
-CONF_CLIMATE_OFFSET = "climate_offset"
+CONF_INDOOR_TEMP = "indoor_temperature"
 
-# Paramètres généraux
+# Appareils mesurés ou estimés (liste de dictionnaires)
+CONF_APPLIANCES = "appliances"
+APP_KEY = "key"
+APP_NAME = "name"
+APP_ENTITY = "entity"
+APP_POWER = "power"
+APP_POWER_SENSOR = "power_sensor"
+APPLIANCE_DOMAINS = [
+    "switch",
+    "light",
+    "fan",
+    "climate",
+    "water_heater",
+    "media_player",
+    "input_boolean",
+    "binary_sensor",
+]
+
+# Tarifs
+CONF_PRICE_PEAK = "price_peak"
+CONF_PRICE_OFFPEAK = "price_offpeak"
+CONF_PRICE_EXPORT = "price_export"
+CONF_PRICE_PEAK_SENSOR = "price_peak_sensor"
+CONF_PRICE_OFFPEAK_SENSOR = "price_offpeak_sensor"
 CONF_OFFPEAK_ENABLED = "offpeak_enabled"
 CONF_OFFPEAK_START = "offpeak_start"
 CONF_OFFPEAK_END = "offpeak_end"
+
+# Confort
+CONF_WINTER_MIN = "winter_min"
+CONF_WINTER_MAX = "winter_max"
+CONF_SUMMER_MIN = "summer_min"
+CONF_SUMMER_MAX = "summer_max"
+
+# Paramètres généraux
 CONF_MARGIN = "margin"
 CONF_MAX_IMPORT = "max_import"
 CONF_MIN_ON = "min_on_minutes"
@@ -51,6 +84,8 @@ CONF_MIN_OFF = "min_off_minutes"
 
 DEFAULTS = {
     CONF_GRID_INVERT: False,
+    CONF_BASELINE: 250,
+    CONF_APPLIANCES: [],
     CONF_WH_NOMINAL: 2000,
     CONF_WH_MIN_HOURS: 3,
     CONF_POOL_NOMINAL: 800,
@@ -58,10 +93,16 @@ DEFAULTS = {
     CONF_POOL_MIN_HOURS: 2,
     CONF_POOL_MAX_HOURS: 14,
     CONF_CLIMATE_POWER: 1000,
-    CONF_CLIMATE_OFFSET: 1.0,
+    CONF_PRICE_PEAK: 0.2146,
+    CONF_PRICE_OFFPEAK: 0.1696,
+    CONF_PRICE_EXPORT: 0.0,
     CONF_OFFPEAK_ENABLED: True,
     CONF_OFFPEAK_START: "22:00:00",
     CONF_OFFPEAK_END: "06:00:00",
+    CONF_WINTER_MIN: 19.0,
+    CONF_WINTER_MAX: 23.0,
+    CONF_SUMMER_MIN: 24.0,
+    CONF_SUMMER_MAX: 27.0,
     CONF_MARGIN: 100,
     CONF_MAX_IMPORT: 300,
     CONF_MIN_ON: 10,

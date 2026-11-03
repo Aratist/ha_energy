@@ -1,8 +1,10 @@
 # Gestionnaire d'énergie solaire pour Home Assistant
 
-Intégration personnalisée (`custom_components/energy_manager`) qui oriente le surplus
-de vos panneaux solaires vers le chauffe-eau, la pompe de piscine et la clim/chauffage,
-avec un rattrapage en heures creuses pour garantir l'eau chaude et la filtration.
+Intégration personnalisée (`custom_components/energy_manager`) qui minimise le coût de
+l'électricité d'une maison équipée de panneaux solaires et d'un abonnement heures
+pleines / heures creuses : elle oriente le solaire vers le chauffe-eau, la pompe de
+piscine et la clim/chauffage, reporte en heures creuses ce qui n'est pas rentable en
+journée, et maintient la maison dans une bande de confort.
 
 Elle ne parle à aucun matériel directement : elle s'appuie sur les entités que vous avez
 déjà dans Home Assistant (compteur Linky/pince, onduleur, prises ou relais, thermostat).
@@ -26,46 +28,60 @@ Home Assistant 2024.12 ou plus récent est requis.
 
 | Étape | Ce qu'il faut fournir |
 |---|---|
-| Mesures | Puissance réseau (> 0 en soutirage, < 0 en injection ; option d'inversion), **ou** consommation maison + production solaire |
-| Équipements | Interrupteurs (`switch` / `input_boolean`) du chauffe-eau et de la pompe, entité `climate`, capteurs de puissance et de température d'eau (optionnels) |
-| Réglages | Puissances nominales, durées garanties, heures creuses, marge, hystérésis, durées min. marche/arrêt |
+| Mesures | Puissance réseau (> 0 en soutirage, < 0 en injection ; option d'inversion), consommation de la maison, production solaire, et le **talon** de consommation utilisé pour l'estimation |
+| Équipements | Interrupteurs du chauffe-eau et de la pompe, entité `climate`, capteurs de puissance, sonde de piscine, température intérieure (optionnels) |
+| Appareils | Liste libre d'appareils : entité qui dit s'il est allumé + puissance habituelle, et/ou capteur de puissance |
+| Tarifs | Prix HP, HC et revente ; capteurs de prix optionnels (Tempo…) ; plage d'heures creuses |
+| Confort | Bande hiver (19–23 °C par défaut) et bande été (24–27 °C) |
+| Réglages | Puissances nominales, durées garanties, marge, hystérésis, durées min. marche/arrêt |
 
 Tout est modifiable ensuite via le bouton **Configurer** de l'intégration.
 
 ## Fonctionnement
 
-Toutes les 30 s, l'intégration calcule la **puissance disponible** = injection réseau +
-puissance des équipements qu'elle pilote déjà, puis l'attribue par priorité :
+Toutes les 30 s :
 
-1. **Chauffe-eau** : démarre sur surplus. Avec un capteur de puissance, une consommation
-   nulle pendant 10 min alors qu'il est alimenté signifie « ballon chaud » : terminé pour la journée.
-2. **Piscine** : durée de filtration = température de l'eau / 2 (bornée min/max), ou durée fixe sans sonde.
-3. **Clim / chauffage** : en mode `heat` ou `cool`, la consigne est décalée (+1 °C en chauffage,
-   −1 °C en clim par défaut) tant qu'il y a du surplus, puis restaurée.
+1. **Mesures.** La consommation est celle du capteur si elle est disponible ; sinon elle est
+   **estimée** = talon + appareils déclarés (mesurés ou puissance habituelle s'ils sont
+   allumés) + équipements pilotés. La puissance réseau est mesurée, sinon déduite
+   (consommation − production). Un capteur Linky indisponible n'arrête donc pas le pilotage.
+2. **Rentabilité.** En heures pleines, un appareil différable (chauffe-eau, piscine) ne
+   démarre que si le solaire couvre au moins `(HP − HC) / (HP − revente)` de sa puissance :
+   au-delà, le faire tourner maintenant coûte moins cher que de l'attendre en heures creuses.
+   Ce qui n'a pas pu tourner en journée est rattrapé pendant les heures creuses.
+3. **Priorités selon la saison.** Hiver (novembre à mars, ou forcé via le sélecteur *Saison*) :
+   chauffage > chauffe-eau > piscine. Été : chauffe-eau > piscine > clim.
+4. **Confort.** En hiver, la consigne du chauffage est maintenue dans la bande ; quand le
+   solaire couvre entièrement la puissance de la clim, la consigne monte au maximum de la
+   bande pour stocker de la chaleur avant la soirée en heures pleines. En été, même principe
+   inversé (la clim descend au minimum de la bande sur surplus). Une consigne changée à la
+   main pendant un boost est respectée ; une clim éteinte n'est jamais rallumée.
+5. **Chauffe-eau** : avec un capteur de puissance, une consommation nulle pendant 10 min
+   alors qu'il est alimenté signifie « ballon chaud ». **Piscine** : durée de filtration =
+   température de l'eau / 2 (bornée), ou durée fixe sans sonde.
+6. **Anti court-cycle** : durées minimales de marche/arrêt, et un équipement en marche n'est
+   coupé que si le soutirage dépasse le seuil toléré.
 
-**Rattrapage** : le cycle journalier commence à la fin des heures creuses. Si la durée garantie
-du chauffe-eau ou de la piscine n'est pas atteinte, l'équipement est forcé pendant les heures
-creuses, ou avant la fin du cycle s'il ne reste plus assez de temps.
-
-**Anti court-cycle** : durées minimales de marche/arrêt, et un équipement en marche n'est coupé
-que si le soutirage dépasse le seuil toléré.
-
-Si la mesure réseau devient indisponible, aucun équipement n'est démarré sur surplus.
+Le cycle journalier commence à la fin des heures creuses.
 
 ## Entités créées
 
-- Capteurs : puissance réseau, puissance disponible, état de chaque équipement
-  (surplus, marche forcée, terminé, en attente…), durées de chauffe / filtration du jour, filtration requise.
-- Interrupteurs : *Pilotage automatique* (global) et un interrupteur automatique par équipement.
-  Désactivé, l'intégration ne touche plus à l'équipement (et restaure la consigne de la clim).
-  Une consigne de clim changée à la main pendant un boost est respectée.
+- **Mesures** : consommation (attribut `source` : mesurée/estimée), production, puissance
+  réseau, puissance disponible, consommation des appareils, un capteur de puissance par
+  appareil déclaré, température intérieure.
+- **Tarifs** : tarif actuel (HP/HC), prix actuel, part solaire minimale rentable.
+- **Bilan du jour** : soutirage, injection, autoconsommation (kWh), coût réseau et économie
+  solaire (€). Remis à zéro à la fin des heures creuses.
+- **Pilotage** : état de chaque équipement (solaire, marche forcée, confort, terminé, en
+  attente…), durées de chauffe / filtration, saison active.
+- **Commandes** : sélecteur *Saison* (automatique / hiver / été), interrupteur *Pilotage
+  automatique* (global) et un interrupteur automatique par équipement.
 
 ## Tableau de bord
 
 Un tableau de bord prêt à coller (cartes natives uniquement) est fourni dans
-[examples/dashboard.yaml](examples/dashboard.yaml) : jauges de puissance, état et
-commande de chaque équipement, durées du jour et historiques sur 24 h.
-Adaptez les entités de production, consommation et équipements indiquées en tête du fichier.
+[examples/dashboard.yaml](examples/dashboard.yaml).
+Adaptez les entités indiquées en tête du fichier.
 
 ## Tests
 

@@ -3,12 +3,16 @@
     "step": {
       "user": {
         "title": "Power measurements",
-        "description": "Provide either the grid power (positive when importing, negative when exporting), or the house consumption and solar production.",
+        "description": "Provide the grid power (positive when importing, negative when exporting) and/or the house consumption. Without them, consumption is estimated from the baseline and the declared appliances.",
         "data": {
           "grid_power": "Grid power",
           "grid_invert": "Invert grid power sign",
           "solar_power": "Solar production",
-          "house_power": "House consumption"
+          "house_power": "House consumption",
+          "baseline_power": "Baseline consumption (estimate)"
+        },
+        "data_description": {
+          "baseline_power": "Permanent consumption (router, fridge, standby…) added to the declared appliances when the consumption measurement is unavailable."
         }
       },
       "loads": {
@@ -20,7 +24,67 @@
           "pool_switch": "Pool: pump switch",
           "pool_power": "Pool: power sensor",
           "pool_temperature": "Pool: water temperature",
-          "climate": "Air conditioning / heating"
+          "climate": "Air conditioning / heating",
+          "climate_power_sensor": "Climate: power sensor",
+          "indoor_temperature": "Indoor temperature"
+        },
+        "data_description": {
+          "indoor_temperature": "Used for the comfort band. Falls back to the climate's own temperature."
+        }
+      },
+      "appliances": {
+        "title": "Measured or estimated appliances",
+        "description": "These appliances are used to estimate consumption when the measurement is unavailable, and are exposed as power sensors.\n\nDeclared: {appliances}",
+        "menu_options": {
+          "add_appliance": "Add an appliance",
+          "remove_appliance": "Remove an appliance",
+          "tariff": "Continue"
+        }
+      },
+      "add_appliance": {
+        "title": "Add an appliance",
+        "data": {
+          "name": "Name",
+          "entity": "Entity telling whether it is on",
+          "power": "Usual power when on",
+          "power_sensor": "Power sensor (if available)"
+        },
+        "data_description": {
+          "power": "Used when there is no power sensor."
+        }
+      },
+      "remove_appliance": {
+        "title": "Remove appliances",
+        "data": {
+          "remove": "Appliances to remove"
+        }
+      },
+      "tariff": {
+        "title": "Tariffs",
+        "description": "A deferrable device only starts during peak hours if solar covers at least (peak − offpeak) / (peak − export) of its power; otherwise it waits for off-peak hours.",
+        "data": {
+          "price_peak": "Peak price",
+          "price_offpeak": "Off-peak price",
+          "price_export": "Export (feed-in) price",
+          "price_peak_sensor": "Peak price sensor (optional)",
+          "price_offpeak_sensor": "Off-peak price sensor (optional)",
+          "offpeak_enabled": "Catch up during off-peak hours",
+          "offpeak_start": "Off-peak start",
+          "offpeak_end": "Off-peak end (daily cycle start)"
+        },
+        "data_description": {
+          "price_export": "0 if surplus is not sold.",
+          "price_peak_sensor": "When available, the sensor overrides the fixed price."
+        }
+      },
+      "comfort": {
+        "title": "Comfort",
+        "description": "In winter the house is kept between the minimum and the maximum; surplus solar heats up to the maximum to store heat. In summer the same applies in reverse with cooling.",
+        "data": {
+          "winter_min": "Winter: minimum temperature",
+          "winter_max": "Winter: maximum temperature (solar boost)",
+          "summer_min": "Summer: minimum temperature (solar boost)",
+          "summer_max": "Summer: maximum temperature"
         }
       },
       "settings": {
@@ -33,10 +97,6 @@
           "pool_min_hours": "Pool: minimum filtration",
           "pool_max_hours": "Pool: maximum filtration",
           "climate_boost_power": "Climate: estimated boost power",
-          "climate_offset": "Climate: boost setpoint offset",
-          "offpeak_enabled": "Catch up during off-peak hours",
-          "offpeak_start": "Off-peak start",
-          "offpeak_end": "Off-peak end (daily cycle start)",
           "margin": "Surplus safety margin",
           "max_import": "Tolerated grid import before stopping a device",
           "min_on_minutes": "Minimum on time",
@@ -45,8 +105,12 @@
       }
     },
     "error": {
-      "no_power_source": "Provide the grid power, or the house consumption.",
-      "no_load": "Select at least one device to control."
+      "no_power_source": "Provide the grid power, the house consumption, or at least the solar production.",
+      "no_load": "Select at least one device to control.",
+      "appliance_no_source": "Provide an entity or a power sensor.",
+      "appliance_no_power": "Provide the usual power of the appliance.",
+      "offpeak_above_peak": "The off-peak price must be lower than the peak price.",
+      "band_inverted": "The minimum must be lower than the maximum."
     },
     "abort": {
       "already_configured": "The energy manager is already configured."
@@ -56,22 +120,88 @@
     "step": {
       "user": {
         "title": "Power measurements",
+        "description": "Provide the grid power (positive when importing, negative when exporting) and/or the house consumption. Without them, consumption is estimated from the baseline and the declared appliances.",
         "data": {
           "grid_power": "Grid power",
           "grid_invert": "Invert grid power sign",
           "solar_power": "Solar production",
-          "house_power": "House consumption"
+          "house_power": "House consumption",
+          "baseline_power": "Baseline consumption (estimate)"
+        },
+        "data_description": {
+          "baseline_power": "Permanent consumption (router, fridge, standby…) added to the declared appliances when the consumption measurement is unavailable."
         }
       },
       "loads": {
         "title": "Controlled devices",
+        "description": "Select at least one device. Power sensors are optional but improve accuracy.",
         "data": {
           "water_heater_switch": "Water heater: switch",
           "water_heater_power": "Water heater: power sensor",
           "pool_switch": "Pool: pump switch",
           "pool_power": "Pool: power sensor",
           "pool_temperature": "Pool: water temperature",
-          "climate": "Air conditioning / heating"
+          "climate": "Air conditioning / heating",
+          "climate_power_sensor": "Climate: power sensor",
+          "indoor_temperature": "Indoor temperature"
+        },
+        "data_description": {
+          "indoor_temperature": "Used for the comfort band. Falls back to the climate's own temperature."
+        }
+      },
+      "appliances": {
+        "title": "Measured or estimated appliances",
+        "description": "These appliances are used to estimate consumption when the measurement is unavailable, and are exposed as power sensors.\n\nDeclared: {appliances}",
+        "menu_options": {
+          "add_appliance": "Add an appliance",
+          "remove_appliance": "Remove an appliance",
+          "tariff": "Continue"
+        }
+      },
+      "add_appliance": {
+        "title": "Add an appliance",
+        "data": {
+          "name": "Name",
+          "entity": "Entity telling whether it is on",
+          "power": "Usual power when on",
+          "power_sensor": "Power sensor (if available)"
+        },
+        "data_description": {
+          "power": "Used when there is no power sensor."
+        }
+      },
+      "remove_appliance": {
+        "title": "Remove appliances",
+        "data": {
+          "remove": "Appliances to remove"
+        }
+      },
+      "tariff": {
+        "title": "Tariffs",
+        "description": "A deferrable device only starts during peak hours if solar covers at least (peak − offpeak) / (peak − export) of its power; otherwise it waits for off-peak hours.",
+        "data": {
+          "price_peak": "Peak price",
+          "price_offpeak": "Off-peak price",
+          "price_export": "Export (feed-in) price",
+          "price_peak_sensor": "Peak price sensor (optional)",
+          "price_offpeak_sensor": "Off-peak price sensor (optional)",
+          "offpeak_enabled": "Catch up during off-peak hours",
+          "offpeak_start": "Off-peak start",
+          "offpeak_end": "Off-peak end (daily cycle start)"
+        },
+        "data_description": {
+          "price_export": "0 if surplus is not sold.",
+          "price_peak_sensor": "When available, the sensor overrides the fixed price."
+        }
+      },
+      "comfort": {
+        "title": "Comfort",
+        "description": "In winter the house is kept between the minimum and the maximum; surplus solar heats up to the maximum to store heat. In summer the same applies in reverse with cooling.",
+        "data": {
+          "winter_min": "Winter: minimum temperature",
+          "winter_max": "Winter: maximum temperature (solar boost)",
+          "summer_min": "Summer: minimum temperature (solar boost)",
+          "summer_max": "Summer: maximum temperature"
         }
       },
       "settings": {
@@ -84,10 +214,6 @@
           "pool_min_hours": "Pool: minimum filtration",
           "pool_max_hours": "Pool: maximum filtration",
           "climate_boost_power": "Climate: estimated boost power",
-          "climate_offset": "Climate: boost setpoint offset",
-          "offpeak_enabled": "Catch up during off-peak hours",
-          "offpeak_start": "Off-peak start",
-          "offpeak_end": "Off-peak end (daily cycle start)",
           "margin": "Surplus safety margin",
           "max_import": "Tolerated grid import before stopping a device",
           "min_on_minutes": "Minimum on time",
@@ -96,21 +222,77 @@
       }
     },
     "error": {
-      "no_power_source": "Provide the grid power, or the house consumption.",
-      "no_load": "Select at least one device to control."
+      "no_power_source": "Provide the grid power, the house consumption, or at least the solar production.",
+      "no_load": "Select at least one device to control.",
+      "appliance_no_source": "Provide an entity or a power sensor.",
+      "appliance_no_power": "Provide the usual power of the appliance.",
+      "offpeak_above_peak": "The off-peak price must be lower than the peak price.",
+      "band_inverted": "The minimum must be lower than the maximum."
     }
   },
   "entity": {
     "sensor": {
-      "grid_power": { "name": "Grid power" },
-      "available_power": { "name": "Available power" },
+      "consumption": {
+        "name": "Consumption"
+      },
+      "production": {
+        "name": "Solar production"
+      },
+      "grid_power": {
+        "name": "Grid power"
+      },
+      "available_power": {
+        "name": "Available power"
+      },
+      "appliances_power": {
+        "name": "Appliances consumption"
+      },
+      "tariff": {
+        "name": "Current tariff",
+        "state": {
+          "peak": "Peak",
+          "offpeak": "Off-peak"
+        }
+      },
+      "price": {
+        "name": "Current price"
+      },
+      "rentable_fraction": {
+        "name": "Minimum worthwhile solar share"
+      },
+      "season": {
+        "name": "Active season",
+        "state": {
+          "winter": "Winter",
+          "summer": "Summer"
+        }
+      },
+      "indoor_temperature": {
+        "name": "Indoor temperature"
+      },
+      "import_today": {
+        "name": "Grid import today"
+      },
+      "export_today": {
+        "name": "Grid export today"
+      },
+      "self_consumption_today": {
+        "name": "Self-consumption today"
+      },
+      "cost_today": {
+        "name": "Grid cost today"
+      },
+      "savings_today": {
+        "name": "Solar savings today"
+      },
       "water_heater_status": {
         "name": "Water heater status",
         "state": {
-          "surplus": "Solar surplus",
+          "surplus": "Solar (worthwhile)",
           "forced": "Forced",
+          "comfort": "Comfort",
           "done": "Done",
-          "waiting": "Waiting for surplus",
+          "waiting": "Waiting for solar",
           "hold": "Hold (anti short-cycle)",
           "manual": "Manual",
           "inactive": "Unavailable"
@@ -119,10 +301,11 @@
       "pool_status": {
         "name": "Pool status",
         "state": {
-          "surplus": "Solar surplus",
+          "surplus": "Solar (worthwhile)",
           "forced": "Forced",
+          "comfort": "Comfort",
           "done": "Filtration done",
-          "waiting": "Waiting for surplus",
+          "waiting": "Waiting for solar",
           "hold": "Hold (anti short-cycle)",
           "manual": "Manual",
           "inactive": "Unavailable"
@@ -133,22 +316,50 @@
         "state": {
           "surplus": "Solar boost",
           "forced": "Forced",
+          "comfort": "Comfort",
           "done": "Done",
           "waiting": "Normal setpoint",
           "hold": "Hold (anti short-cycle)",
           "manual": "Manual",
-          "inactive": "Inactive (off or unsupported mode)"
+          "inactive": "Inactive (off or out-of-season mode)"
         }
       },
-      "water_heater_runtime": { "name": "Water heater: heating today" },
-      "pool_runtime": { "name": "Pool: filtration today" },
-      "pool_required": { "name": "Pool: required filtration" }
+      "water_heater_runtime": {
+        "name": "Water heater: heating today"
+      },
+      "pool_runtime": {
+        "name": "Pool: filtration today"
+      },
+      "pool_required": {
+        "name": "Pool: required filtration"
+      },
+      "appliance_power": {
+        "name": "{name}: power"
+      }
+    },
+    "select": {
+      "season_mode": {
+        "name": "Season",
+        "state": {
+          "auto": "Automatic",
+          "winter": "Winter",
+          "summer": "Summer"
+        }
+      }
     },
     "switch": {
-      "master_auto": { "name": "Automatic control" },
-      "water_heater_auto": { "name": "Water heater automatic" },
-      "pool_auto": { "name": "Pool automatic" },
-      "climate_auto": { "name": "Climate automatic" }
+      "master_auto": {
+        "name": "Automatic control"
+      },
+      "water_heater_auto": {
+        "name": "Water heater automatic"
+      },
+      "pool_auto": {
+        "name": "Pool automatic"
+      },
+      "climate_auto": {
+        "name": "Climate automatic"
+      }
     }
   }
 }

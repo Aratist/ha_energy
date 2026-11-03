@@ -6,7 +6,6 @@
 #
 # Les identifiants ci-dessous sont ceux générés par HA en français.
 # À adapter :
-#   - sensor.production_solaire / sensor.consommation_maison : vos capteurs
 #   - switch.ballon_ecs / switch.pompe_piscine / climate.salon : vos équipements
 # Retirez les cartes des équipements que vous n'avez pas configurés.
 # Seules des cartes natives de Home Assistant sont utilisées (aucune carte HACS).
@@ -47,21 +46,48 @@ views:
               yellow: 0
               red: 1000
           - type: tile
-            entity: sensor.production_solaire
+            entity: sensor.gestionnaire_d_energie_production_solaire
             name: Production solaire
             icon: mdi:solar-panel
           - type: tile
-            entity: sensor.consommation_maison
-            name: Consommation maison
+            entity: sensor.gestionnaire_d_energie_consommation
+            name: Consommation
             icon: mdi:home-lightning-bolt
+          - type: tile
+            entity: sensor.gestionnaire_d_energie_tarif_actuel
+            name: Tarif
+            icon: mdi:clock-outline
+          - type: tile
+            entity: sensor.gestionnaire_d_energie_prix_actuel
+            name: Prix
+            icon: mdi:currency-eur
           - type: tile
             entity: switch.gestionnaire_d_energie_pilotage_automatique
             name: Pilotage automatique
             icon: mdi:robot
-            grid_options:
-              columns: full
             features:
               - type: toggle
+          - type: tile
+            entity: select.gestionnaire_d_energie_saison
+            name: Saison
+            icon: mdi:sun-snowflake
+            features:
+              - type: select-options
+          - type: entities
+            title: Bilan du jour
+            grid_options:
+              columns: full
+            entities:
+              - entity: sensor.gestionnaire_d_energie_cout_reseau_du_jour
+                name: Coût réseau
+              - entity: sensor.gestionnaire_d_energie_economie_solaire_du_jour
+                name: Économie solaire
+              - entity: sensor.gestionnaire_d_energie_autoconsommation_du_jour
+                name: Autoconsommation
+              - entity: sensor.gestionnaire_d_energie_soutirage_du_jour
+                name: Soutirage
+              - entity: sensor.gestionnaire_d_energie_part_solaire_minimale_rentable
+                name: Part solaire rentable
 
       - type: grid
         cards:
@@ -126,9 +152,9 @@ views:
             grid_options:
               columns: full
             entities:
-              - entity: sensor.production_solaire
+              - entity: sensor.gestionnaire_d_energie_production_solaire
                 name: Production
-              - entity: sensor.consommation_maison
+              - entity: sensor.gestionnaire_d_energie_consommation
                 name: Consommation
               - entity: sensor.gestionnaire_d_energie_puissance_reseau
                 name: Réseau
