@@ -86,7 +86,7 @@ CLIMATE = EntitySelector(EntitySelectorConfig(domain="climate"))
 APPLIANCE = EntitySelector(EntitySelectorConfig(domain=APPLIANCE_DOMAINS))
 
 
-def _number(min_: float, max_: float, step: float, unit: str) -> NumberSelector:
+def _number(min_: float, max_: float, step: float | str, unit: str) -> NumberSelector:
     return NumberSelector(
         NumberSelectorConfig(
             min=min_, max=max_, step=step, unit_of_measurement=unit,
@@ -129,9 +129,10 @@ APPLIANCE_SCHEMA = vol.Schema(
 
 TARIFF_SCHEMA = vol.Schema(
     {
-        vol.Required(CONF_PRICE_PEAK): _number(0, 2, 0.0001, "€/kWh"),
-        vol.Required(CONF_PRICE_OFFPEAK): _number(0, 2, 0.0001, "€/kWh"),
-        vol.Required(CONF_PRICE_EXPORT): _number(0, 2, 0.0001, "€/kWh"),
+        # HA impose un pas ≥ 0,001 ; « any » laisse saisir 4 décimales.
+        vol.Required(CONF_PRICE_PEAK): _number(0, 2, "any", "€/kWh"),
+        vol.Required(CONF_PRICE_OFFPEAK): _number(0, 2, "any", "€/kWh"),
+        vol.Required(CONF_PRICE_EXPORT): _number(0, 2, "any", "€/kWh"),
         vol.Optional(CONF_PRICE_PEAK_SENSOR): ANY_SENSOR,
         vol.Optional(CONF_PRICE_OFFPEAK_SENSOR): ANY_SENSOR,
         vol.Required(CONF_OFFPEAK_ENABLED): BooleanSelector(),
