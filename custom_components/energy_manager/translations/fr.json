@@ -1,0 +1,161 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Mesures électriques",
+        "description": "Indiquez soit la puissance réseau (positive en soutirage, négative en injection), soit la consommation de la maison et la production solaire.",
+        "data": {
+          "grid_power": "Puissance réseau (compteur, Linky, pince…)",
+          "grid_invert": "Inverser le signe de la puissance réseau",
+          "solar_power": "Production solaire",
+          "house_power": "Consommation de la maison"
+        }
+      },
+      "loads": {
+        "title": "Équipements pilotés",
+        "description": "Renseignez au moins un équipement. Les capteurs de puissance sont optionnels mais améliorent la précision.",
+        "data": {
+          "water_heater_switch": "Chauffe-eau : interrupteur",
+          "water_heater_power": "Chauffe-eau : capteur de puissance",
+          "pool_switch": "Piscine : interrupteur de la pompe",
+          "pool_power": "Piscine : capteur de puissance",
+          "pool_temperature": "Piscine : température de l'eau",
+          "climate": "Climatisation / chauffage"
+        }
+      },
+      "settings": {
+        "title": "Réglages",
+        "data": {
+          "water_heater_nominal_power": "Chauffe-eau : puissance nominale",
+          "water_heater_min_hours": "Chauffe-eau : durée minimale garantie par jour",
+          "pool_nominal_power": "Piscine : puissance de la pompe",
+          "pool_hours": "Piscine : filtration par jour (sans sonde de température)",
+          "pool_min_hours": "Piscine : filtration minimale",
+          "pool_max_hours": "Piscine : filtration maximale",
+          "climate_boost_power": "Clim : puissance estimée du boost",
+          "climate_offset": "Clim : décalage de consigne en boost",
+          "offpeak_enabled": "Rattrapage en heures creuses",
+          "offpeak_start": "Début des heures creuses",
+          "offpeak_end": "Fin des heures creuses (début du cycle journalier)",
+          "margin": "Marge de sécurité sur le surplus",
+          "max_import": "Soutirage toléré avant arrêt d'un équipement",
+          "min_on_minutes": "Durée minimale de marche",
+          "min_off_minutes": "Durée minimale d'arrêt"
+        },
+        "data_description": {
+          "water_heater_min_hours": "Si cette durée n'est pas atteinte grâce au soleil, le chauffe-eau est forcé en heures creuses. Un capteur de puissance permet de détecter que le ballon est chaud.",
+          "pool_hours": "Avec une sonde, la durée suit la règle « température de l'eau / 2 ».",
+          "climate_offset": "La consigne est montée (chauffage) ou baissée (clim) de cette valeur quand il y a du surplus.",
+          "max_import": "Hystérésis : un équipement en marche n'est coupé que si le soutirage dépasse cette valeur."
+        }
+      }
+    },
+    "error": {
+      "no_power_source": "Renseignez la puissance réseau, ou la consommation de la maison.",
+      "no_load": "Renseignez au moins un équipement à piloter."
+    },
+    "abort": {
+      "already_configured": "Le gestionnaire d'énergie est déjà configuré."
+    }
+  },
+  "options": {
+    "step": {
+      "user": {
+        "title": "Mesures électriques",
+        "description": "Indiquez soit la puissance réseau (positive en soutirage, négative en injection), soit la consommation de la maison et la production solaire.",
+        "data": {
+          "grid_power": "Puissance réseau (compteur, Linky, pince…)",
+          "grid_invert": "Inverser le signe de la puissance réseau",
+          "solar_power": "Production solaire",
+          "house_power": "Consommation de la maison"
+        }
+      },
+      "loads": {
+        "title": "Équipements pilotés",
+        "data": {
+          "water_heater_switch": "Chauffe-eau : interrupteur",
+          "water_heater_power": "Chauffe-eau : capteur de puissance",
+          "pool_switch": "Piscine : interrupteur de la pompe",
+          "pool_power": "Piscine : capteur de puissance",
+          "pool_temperature": "Piscine : température de l'eau",
+          "climate": "Climatisation / chauffage"
+        }
+      },
+      "settings": {
+        "title": "Réglages",
+        "data": {
+          "water_heater_nominal_power": "Chauffe-eau : puissance nominale",
+          "water_heater_min_hours": "Chauffe-eau : durée minimale garantie par jour",
+          "pool_nominal_power": "Piscine : puissance de la pompe",
+          "pool_hours": "Piscine : filtration par jour (sans sonde de température)",
+          "pool_min_hours": "Piscine : filtration minimale",
+          "pool_max_hours": "Piscine : filtration maximale",
+          "climate_boost_power": "Clim : puissance estimée du boost",
+          "climate_offset": "Clim : décalage de consigne en boost",
+          "offpeak_enabled": "Rattrapage en heures creuses",
+          "offpeak_start": "Début des heures creuses",
+          "offpeak_end": "Fin des heures creuses (début du cycle journalier)",
+          "margin": "Marge de sécurité sur le surplus",
+          "max_import": "Soutirage toléré avant arrêt d'un équipement",
+          "min_on_minutes": "Durée minimale de marche",
+          "min_off_minutes": "Durée minimale d'arrêt"
+        }
+      }
+    },
+    "error": {
+      "no_power_source": "Renseignez la puissance réseau, ou la consommation de la maison.",
+      "no_load": "Renseignez au moins un équipement à piloter."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "grid_power": { "name": "Puissance réseau" },
+      "available_power": { "name": "Puissance disponible" },
+      "water_heater_status": {
+        "name": "État chauffe-eau",
+        "state": {
+          "surplus": "Surplus solaire",
+          "forced": "Marche forcée",
+          "done": "Terminé",
+          "waiting": "En attente de surplus",
+          "hold": "Maintien (anti court-cycle)",
+          "manual": "Manuel",
+          "inactive": "Indisponible"
+        }
+      },
+      "pool_status": {
+        "name": "État piscine",
+        "state": {
+          "surplus": "Surplus solaire",
+          "forced": "Marche forcée",
+          "done": "Filtration terminée",
+          "waiting": "En attente de surplus",
+          "hold": "Maintien (anti court-cycle)",
+          "manual": "Manuel",
+          "inactive": "Indisponible"
+        }
+      },
+      "climate_status": {
+        "name": "État clim",
+        "state": {
+          "surplus": "Boost solaire",
+          "forced": "Marche forcée",
+          "done": "Terminé",
+          "waiting": "Consigne normale",
+          "hold": "Maintien (anti court-cycle)",
+          "manual": "Manuel",
+          "inactive": "Inactive (arrêt ou mode non géré)"
+        }
+      },
+      "water_heater_runtime": { "name": "Chauffe-eau : chauffe du jour" },
+      "pool_runtime": { "name": "Piscine : filtration du jour" },
+      "pool_required": { "name": "Piscine : filtration requise" }
+    },
+    "switch": {
+      "master_auto": { "name": "Pilotage automatique" },
+      "water_heater_auto": { "name": "Chauffe-eau automatique" },
+      "pool_auto": { "name": "Piscine automatique" },
+      "climate_auto": { "name": "Clim automatique" }
+    }
+  }
+}
