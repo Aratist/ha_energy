@@ -1,0 +1,158 @@
+# Tableau de bord « Analyse énergie » : courbes de consommation / production,
+# allumage et consommation de chaque appareil, décisions de l'intégration.
+#
+# Cartes natives uniquement. Les appareils utilisent directement les capteurs
+# des prises connectées (historique disponible dès l'installation des prises).
+# À adapter : les entités des prises et équipements marquées « vos entités ».
+
+title: Analyse énergie
+views:
+  - title: Analyse
+    path: analyse
+    icon: mdi:chart-areaspline
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Puissances sur 24 h
+            icon: mdi:flash
+          - type: history-graph
+            title: Production, consommation et réseau
+            hours_to_show: 24
+            grid_options:
+              columns: full
+            entities:
+              - entity: sensor.gestionnaire_d_energie_production_solaire
+                name: Production
+              - entity: sensor.gestionnaire_d_energie_consommation
+                name: Consommation
+              - entity: sensor.gestionnaire_d_energie_puissance_reseau
+                name: Réseau (+ import / − export)
+              - entity: sensor.gestionnaire_d_energie_puissance_disponible
+                name: Disponible pour les équipements
+
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Appareils
+            icon: mdi:power-plug
+          - type: history-graph
+            title: Consommation des appareils (W)
+            hours_to_show: 24
+            grid_options:
+              columns: full
+            entities:
+              - entity: sensor.chauffe_eau_puissance        # vos entités
+                name: Chauffe-eau
+              - entity: sensor.piscine_puissance
+                name: Piscine
+              - entity: sensor.puissance_clim_bas
+                name: Clim bas
+              - entity: sensor.prise_sdb_bas_puissance
+                name: Jacuzzi
+              - entity: sensor.priseboiteaulettre_puissance
+                name: Machine à laver
+          - type: history-graph
+            title: Allumage des appareils
+            hours_to_show: 24
+            grid_options:
+              columns: full
+            entities:
+              - entity: switch.chauffe_eau_prise_1          # vos entités
+                name: Chauffe-eau
+              - entity: switch.piscine_prise_1
+                name: Piscine
+              - entity: climate.daikinap85642
+                name: Clim bas
+              - entity: switch.prise_sdb_bas
+                name: Jacuzzi
+              - entity: switch.priseboiteaulettre
+                name: Machine à laver
+
+      - type: grid
+        cards:
+          - type: heading
+            heading: Décisions de l'intégration
+            icon: mdi:robot
+          - type: history-graph
+            hours_to_show: 24
+            grid_options:
+              columns: full
+            entities:
+              - entity: sensor.gestionnaire_d_energie_etat_chauffe_eau
+                name: Chauffe-eau
+              - entity: sensor.gestionnaire_d_energie_etat_piscine
+                name: Piscine
+              - entity: sensor.gestionnaire_d_energie_etat_clim
+                name: Clim
+              - entity: sensor.gestionnaire_d_energie_tarif_actuel
+                name: Tarif
+          - type: entities
+            title: Bilan du jour
+            grid_options:
+              columns: full
+            entities:
+              - entity: sensor.gestionnaire_d_energie_cout_reseau_du_jour
+                name: Coût réseau
+              - entity: sensor.gestionnaire_d_energie_economie_solaire_du_jour
+                name: Économie solaire
+              - entity: sensor.gestionnaire_d_energie_soutirage_du_jour
+                name: Soutirage
+              - entity: sensor.gestionnaire_d_energie_injection_du_jour
+                name: Injection
+              - entity: sensor.gestionnaire_d_energie_autoconsommation_du_jour
+                name: Autoconsommation
+              - entity: sensor.gestionnaire_d_energie_consommation_des_appareils
+                name: Appareils (instantané)
+
+      - type: grid
+        cards:
+          - type: heading
+            heading: Énergie par jour
+            icon: mdi:calendar-month
+          - type: statistics-graph
+            title: Appareils (kWh / jour, 14 jours)
+            chart_type: bar
+            period: day
+            days_to_show: 14
+            stat_types:
+              - change
+            grid_options:
+              columns: full
+            entities:
+              - entity: sensor.prise_sdb_bas_consommation       # vos entités
+                name: Jacuzzi
+              - entity: sensor.priseboiteaulettre_consommation
+                name: Machine à laver
+          - type: statistics-graph
+            title: Réseau (kWh / jour, 14 jours)
+            chart_type: bar
+            period: day
+            days_to_show: 14
+            stat_types:
+              - max
+            grid_options:
+              columns: full
+            entities:
+              - entity: sensor.gestionnaire_d_energie_soutirage_du_jour
+                name: Soutirage
+              - entity: sensor.gestionnaire_d_energie_injection_du_jour
+                name: Injection
+              - entity: sensor.gestionnaire_d_energie_autoconsommation_du_jour
+                name: Autoconsommation
+          - type: history-graph
+            title: Températures
+            hours_to_show: 24
+            grid_options:
+              columns: full
+            entities:
+              - entity: sensor.gestionnaire_d_energie_temperature_interieure
+                name: Intérieur
+              - entity: sensor.daikinap85642_climatecontrol_outdoor_temperature   # vos entités
+                name: Extérieur
+              - entity: sensor.zhi_neng_tai_yang_neng_yu_lu_temperature
+                name: Piscine
