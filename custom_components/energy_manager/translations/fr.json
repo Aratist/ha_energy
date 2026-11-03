@@ -3,12 +3,16 @@
     "step": {
       "user": {
         "title": "Mesures électriques",
-        "description": "Indiquez soit la puissance réseau (positive en soutirage, négative en injection), soit la consommation de la maison et la production solaire.",
+        "description": "Indiquez la puissance réseau (positive en soutirage, négative en injection) et/ou la consommation de la maison. Sans ces mesures, la consommation est estimée à partir du talon et des appareils déclarés.",
         "data": {
           "grid_power": "Puissance réseau (compteur, Linky, pince…)",
           "grid_invert": "Inverser le signe de la puissance réseau",
           "solar_power": "Production solaire",
-          "house_power": "Consommation de la maison"
+          "house_power": "Consommation de la maison",
+          "baseline_power": "Talon de consommation (estimation)"
+        },
+        "data_description": {
+          "baseline_power": "Consommation permanente de la maison (box, frigo, veilles…) ajoutée aux appareils déclarés quand la mesure de consommation est indisponible."
         }
       },
       "loads": {
@@ -20,7 +24,67 @@
           "pool_switch": "Piscine : interrupteur de la pompe",
           "pool_power": "Piscine : capteur de puissance",
           "pool_temperature": "Piscine : température de l'eau",
-          "climate": "Climatisation / chauffage"
+          "climate": "Climatisation / chauffage",
+          "climate_power_sensor": "Clim : capteur de puissance",
+          "indoor_temperature": "Température intérieure"
+        },
+        "data_description": {
+          "indoor_temperature": "Sert à la bande de confort. À défaut, la température mesurée par la clim est utilisée."
+        }
+      },
+      "appliances": {
+        "title": "Appareils mesurés ou estimés",
+        "description": "Ces appareils servent à estimer la consommation quand la mesure est indisponible, et sont exposés en capteurs de puissance.\n\nDéclarés : {appliances}",
+        "menu_options": {
+          "add_appliance": "Ajouter un appareil",
+          "remove_appliance": "Supprimer un appareil",
+          "tariff": "Continuer"
+        }
+      },
+      "add_appliance": {
+        "title": "Ajouter un appareil",
+        "data": {
+          "name": "Nom",
+          "entity": "Entité qui indique s'il est allumé",
+          "power": "Puissance habituelle quand il est allumé",
+          "power_sensor": "Capteur de puissance (si disponible)"
+        },
+        "data_description": {
+          "power": "Utilisée quand il n'y a pas de capteur de puissance."
+        }
+      },
+      "remove_appliance": {
+        "title": "Supprimer des appareils",
+        "data": {
+          "remove": "Appareils à supprimer"
+        }
+      },
+      "tariff": {
+        "title": "Tarifs",
+        "description": "Un appareil différable ne démarre en heures pleines que si le solaire couvre au moins (HP − HC) / (HP − revente) de sa puissance ; sinon il attend les heures creuses.",
+        "data": {
+          "price_peak": "Prix heures pleines",
+          "price_offpeak": "Prix heures creuses",
+          "price_export": "Prix de revente du surplus",
+          "price_peak_sensor": "Capteur du prix HP (optionnel, ex. Tempo)",
+          "price_offpeak_sensor": "Capteur du prix HC (optionnel, ex. Tempo)",
+          "offpeak_enabled": "Rattrapage en heures creuses",
+          "offpeak_start": "Début des heures creuses",
+          "offpeak_end": "Fin des heures creuses (début du cycle journalier)"
+        },
+        "data_description": {
+          "price_export": "0 si le surplus n'est pas vendu.",
+          "price_peak_sensor": "Quand il est disponible, le capteur remplace le prix fixe."
+        }
+      },
+      "comfort": {
+        "title": "Confort",
+        "description": "En hiver la maison est maintenue entre le minimum et le maximum ; le solaire excédentaire chauffe jusqu'au maximum pour stocker de la chaleur. En été, même principe inversé avec la clim.",
+        "data": {
+          "winter_min": "Hiver : température minimale",
+          "winter_max": "Hiver : température maximale (boost solaire)",
+          "summer_min": "Été : température minimale (boost solaire)",
+          "summer_max": "Été : température maximale"
         }
       },
       "settings": {
@@ -33,10 +97,6 @@
           "pool_min_hours": "Piscine : filtration minimale",
           "pool_max_hours": "Piscine : filtration maximale",
           "climate_boost_power": "Clim : puissance estimée du boost",
-          "climate_offset": "Clim : décalage de consigne en boost",
-          "offpeak_enabled": "Rattrapage en heures creuses",
-          "offpeak_start": "Début des heures creuses",
-          "offpeak_end": "Fin des heures creuses (début du cycle journalier)",
           "margin": "Marge de sécurité sur le surplus",
           "max_import": "Soutirage toléré avant arrêt d'un équipement",
           "min_on_minutes": "Durée minimale de marche",
@@ -45,14 +105,17 @@
         "data_description": {
           "water_heater_min_hours": "Si cette durée n'est pas atteinte grâce au soleil, le chauffe-eau est forcé en heures creuses. Un capteur de puissance permet de détecter que le ballon est chaud.",
           "pool_hours": "Avec une sonde, la durée suit la règle « température de l'eau / 2 ».",
-          "climate_offset": "La consigne est montée (chauffage) ou baissée (clim) de cette valeur quand il y a du surplus.",
           "max_import": "Hystérésis : un équipement en marche n'est coupé que si le soutirage dépasse cette valeur."
         }
       }
     },
     "error": {
-      "no_power_source": "Renseignez la puissance réseau, ou la consommation de la maison.",
-      "no_load": "Renseignez au moins un équipement à piloter."
+      "no_power_source": "Renseignez la puissance réseau, la consommation de la maison, ou au moins la production solaire.",
+      "no_load": "Renseignez au moins un équipement à piloter.",
+      "appliance_no_source": "Indiquez une entité ou un capteur de puissance.",
+      "appliance_no_power": "Indiquez la puissance habituelle de l'appareil.",
+      "offpeak_above_peak": "Le prix heures creuses doit être inférieur au prix heures pleines.",
+      "band_inverted": "Le minimum doit être inférieur au maximum."
     },
     "abort": {
       "already_configured": "Le gestionnaire d'énergie est déjà configuré."
@@ -62,23 +125,88 @@
     "step": {
       "user": {
         "title": "Mesures électriques",
-        "description": "Indiquez soit la puissance réseau (positive en soutirage, négative en injection), soit la consommation de la maison et la production solaire.",
+        "description": "Indiquez la puissance réseau (positive en soutirage, négative en injection) et/ou la consommation de la maison. Sans ces mesures, la consommation est estimée à partir du talon et des appareils déclarés.",
         "data": {
           "grid_power": "Puissance réseau (compteur, Linky, pince…)",
           "grid_invert": "Inverser le signe de la puissance réseau",
           "solar_power": "Production solaire",
-          "house_power": "Consommation de la maison"
+          "house_power": "Consommation de la maison",
+          "baseline_power": "Talon de consommation (estimation)"
+        },
+        "data_description": {
+          "baseline_power": "Consommation permanente de la maison (box, frigo, veilles…) ajoutée aux appareils déclarés quand la mesure de consommation est indisponible."
         }
       },
       "loads": {
         "title": "Équipements pilotés",
+        "description": "Renseignez au moins un équipement. Les capteurs de puissance sont optionnels mais améliorent la précision.",
         "data": {
           "water_heater_switch": "Chauffe-eau : interrupteur",
           "water_heater_power": "Chauffe-eau : capteur de puissance",
           "pool_switch": "Piscine : interrupteur de la pompe",
           "pool_power": "Piscine : capteur de puissance",
           "pool_temperature": "Piscine : température de l'eau",
-          "climate": "Climatisation / chauffage"
+          "climate": "Climatisation / chauffage",
+          "climate_power_sensor": "Clim : capteur de puissance",
+          "indoor_temperature": "Température intérieure"
+        },
+        "data_description": {
+          "indoor_temperature": "Sert à la bande de confort. À défaut, la température mesurée par la clim est utilisée."
+        }
+      },
+      "appliances": {
+        "title": "Appareils mesurés ou estimés",
+        "description": "Ces appareils servent à estimer la consommation quand la mesure est indisponible, et sont exposés en capteurs de puissance.\n\nDéclarés : {appliances}",
+        "menu_options": {
+          "add_appliance": "Ajouter un appareil",
+          "remove_appliance": "Supprimer un appareil",
+          "tariff": "Continuer"
+        }
+      },
+      "add_appliance": {
+        "title": "Ajouter un appareil",
+        "data": {
+          "name": "Nom",
+          "entity": "Entité qui indique s'il est allumé",
+          "power": "Puissance habituelle quand il est allumé",
+          "power_sensor": "Capteur de puissance (si disponible)"
+        },
+        "data_description": {
+          "power": "Utilisée quand il n'y a pas de capteur de puissance."
+        }
+      },
+      "remove_appliance": {
+        "title": "Supprimer des appareils",
+        "data": {
+          "remove": "Appareils à supprimer"
+        }
+      },
+      "tariff": {
+        "title": "Tarifs",
+        "description": "Un appareil différable ne démarre en heures pleines que si le solaire couvre au moins (HP − HC) / (HP − revente) de sa puissance ; sinon il attend les heures creuses.",
+        "data": {
+          "price_peak": "Prix heures pleines",
+          "price_offpeak": "Prix heures creuses",
+          "price_export": "Prix de revente du surplus",
+          "price_peak_sensor": "Capteur du prix HP (optionnel, ex. Tempo)",
+          "price_offpeak_sensor": "Capteur du prix HC (optionnel, ex. Tempo)",
+          "offpeak_enabled": "Rattrapage en heures creuses",
+          "offpeak_start": "Début des heures creuses",
+          "offpeak_end": "Fin des heures creuses (début du cycle journalier)"
+        },
+        "data_description": {
+          "price_export": "0 si le surplus n'est pas vendu.",
+          "price_peak_sensor": "Quand il est disponible, le capteur remplace le prix fixe."
+        }
+      },
+      "comfort": {
+        "title": "Confort",
+        "description": "En hiver la maison est maintenue entre le minimum et le maximum ; le solaire excédentaire chauffe jusqu'au maximum pour stocker de la chaleur. En été, même principe inversé avec la clim.",
+        "data": {
+          "winter_min": "Hiver : température minimale",
+          "winter_max": "Hiver : température maximale (boost solaire)",
+          "summer_min": "Été : température minimale (boost solaire)",
+          "summer_max": "Été : température maximale"
         }
       },
       "settings": {
@@ -91,33 +219,90 @@
           "pool_min_hours": "Piscine : filtration minimale",
           "pool_max_hours": "Piscine : filtration maximale",
           "climate_boost_power": "Clim : puissance estimée du boost",
-          "climate_offset": "Clim : décalage de consigne en boost",
-          "offpeak_enabled": "Rattrapage en heures creuses",
-          "offpeak_start": "Début des heures creuses",
-          "offpeak_end": "Fin des heures creuses (début du cycle journalier)",
           "margin": "Marge de sécurité sur le surplus",
           "max_import": "Soutirage toléré avant arrêt d'un équipement",
           "min_on_minutes": "Durée minimale de marche",
           "min_off_minutes": "Durée minimale d'arrêt"
+        },
+        "data_description": {
+          "water_heater_min_hours": "Si cette durée n'est pas atteinte grâce au soleil, le chauffe-eau est forcé en heures creuses. Un capteur de puissance permet de détecter que le ballon est chaud.",
+          "pool_hours": "Avec une sonde, la durée suit la règle « température de l'eau / 2 ».",
+          "max_import": "Hystérésis : un équipement en marche n'est coupé que si le soutirage dépasse cette valeur."
         }
       }
     },
     "error": {
-      "no_power_source": "Renseignez la puissance réseau, ou la consommation de la maison.",
-      "no_load": "Renseignez au moins un équipement à piloter."
+      "no_power_source": "Renseignez la puissance réseau, la consommation de la maison, ou au moins la production solaire.",
+      "no_load": "Renseignez au moins un équipement à piloter.",
+      "appliance_no_source": "Indiquez une entité ou un capteur de puissance.",
+      "appliance_no_power": "Indiquez la puissance habituelle de l'appareil.",
+      "offpeak_above_peak": "Le prix heures creuses doit être inférieur au prix heures pleines.",
+      "band_inverted": "Le minimum doit être inférieur au maximum."
     }
   },
   "entity": {
     "sensor": {
-      "grid_power": { "name": "Puissance réseau" },
-      "available_power": { "name": "Puissance disponible" },
+      "consumption": {
+        "name": "Consommation"
+      },
+      "production": {
+        "name": "Production solaire"
+      },
+      "grid_power": {
+        "name": "Puissance réseau"
+      },
+      "available_power": {
+        "name": "Puissance disponible"
+      },
+      "appliances_power": {
+        "name": "Consommation des appareils"
+      },
+      "tariff": {
+        "name": "Tarif actuel",
+        "state": {
+          "peak": "Heures pleines",
+          "offpeak": "Heures creuses"
+        }
+      },
+      "price": {
+        "name": "Prix actuel"
+      },
+      "rentable_fraction": {
+        "name": "Part solaire minimale rentable"
+      },
+      "season": {
+        "name": "Saison active",
+        "state": {
+          "winter": "Hiver",
+          "summer": "Été"
+        }
+      },
+      "indoor_temperature": {
+        "name": "Température intérieure"
+      },
+      "import_today": {
+        "name": "Soutirage du jour"
+      },
+      "export_today": {
+        "name": "Injection du jour"
+      },
+      "self_consumption_today": {
+        "name": "Autoconsommation du jour"
+      },
+      "cost_today": {
+        "name": "Coût réseau du jour"
+      },
+      "savings_today": {
+        "name": "Économie solaire du jour"
+      },
       "water_heater_status": {
         "name": "État chauffe-eau",
         "state": {
-          "surplus": "Surplus solaire",
+          "surplus": "Solaire (rentable)",
           "forced": "Marche forcée",
+          "comfort": "Confort",
           "done": "Terminé",
-          "waiting": "En attente de surplus",
+          "waiting": "En attente de solaire",
           "hold": "Maintien (anti court-cycle)",
           "manual": "Manuel",
           "inactive": "Indisponible"
@@ -126,10 +311,11 @@
       "pool_status": {
         "name": "État piscine",
         "state": {
-          "surplus": "Surplus solaire",
+          "surplus": "Solaire (rentable)",
           "forced": "Marche forcée",
+          "comfort": "Confort",
           "done": "Filtration terminée",
-          "waiting": "En attente de surplus",
+          "waiting": "En attente de solaire",
           "hold": "Maintien (anti court-cycle)",
           "manual": "Manuel",
           "inactive": "Indisponible"
@@ -140,22 +326,50 @@
         "state": {
           "surplus": "Boost solaire",
           "forced": "Marche forcée",
+          "comfort": "Confort",
           "done": "Terminé",
           "waiting": "Consigne normale",
           "hold": "Maintien (anti court-cycle)",
           "manual": "Manuel",
-          "inactive": "Inactive (arrêt ou mode non géré)"
+          "inactive": "Inactive (arrêt ou mode hors saison)"
         }
       },
-      "water_heater_runtime": { "name": "Chauffe-eau : chauffe du jour" },
-      "pool_runtime": { "name": "Piscine : filtration du jour" },
-      "pool_required": { "name": "Piscine : filtration requise" }
+      "water_heater_runtime": {
+        "name": "Chauffe-eau : chauffe du jour"
+      },
+      "pool_runtime": {
+        "name": "Piscine : filtration du jour"
+      },
+      "pool_required": {
+        "name": "Piscine : filtration requise"
+      },
+      "appliance_power": {
+        "name": "{name} : puissance"
+      }
+    },
+    "select": {
+      "season_mode": {
+        "name": "Saison",
+        "state": {
+          "auto": "Automatique",
+          "winter": "Hiver",
+          "summer": "Été"
+        }
+      }
     },
     "switch": {
-      "master_auto": { "name": "Pilotage automatique" },
-      "water_heater_auto": { "name": "Chauffe-eau automatique" },
-      "pool_auto": { "name": "Piscine automatique" },
-      "climate_auto": { "name": "Clim automatique" }
+      "master_auto": {
+        "name": "Pilotage automatique"
+      },
+      "water_heater_auto": {
+        "name": "Chauffe-eau automatique"
+      },
+      "pool_auto": {
+        "name": "Piscine automatique"
+      },
+      "climate_auto": {
+        "name": "Clim automatique"
+      }
     }
   }
 }
