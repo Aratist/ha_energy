@@ -54,6 +54,13 @@ Si la mesure réseau devient indisponible, aucun équipement n'est démarré sur
   Désactivé, l'intégration ne touche plus à l'équipement (et restaure la consigne de la clim).
   Une consigne de clim changée à la main pendant un boost est respectée.
 
+## Tableau de bord
+
+Un tableau de bord prêt à coller (cartes natives uniquement) est fourni dans
+[examples/dashboard.yaml](examples/dashboard.yaml) : jauges de puissance, état et
+commande de chaque équipement, durées du jour et historiques sur 24 h.
+Adaptez les entités de production, consommation et équipements indiquées en tête du fichier.
+
 ## Tests
 
 La logique de décision (`engine.py`) est indépendante de Home Assistant :

@@ -1,0 +1,148 @@
+# Tableau de bord « Énergie » pour le Gestionnaire d'énergie solaire.
+#
+# Utilisation : Paramètres → Tableaux de bord → Ajouter un tableau de bord
+# → « Nouveau tableau de bord à partir de zéro », puis ⋮ → Modifier
+# → ⋮ → Éditeur de configuration brute, et coller ce fichier.
+#
+# Les identifiants ci-dessous sont ceux générés par HA en français.
+# À adapter :
+#   - sensor.production_solaire / sensor.consommation_maison : vos capteurs
+#   - switch.ballon_ecs / switch.pompe_piscine / climate.salon : vos équipements
+# Retirez les cartes des équipements que vous n'avez pas configurés.
+# Seules des cartes natives de Home Assistant sont utilisées (aucune carte HACS).
+
+title: Énergie
+views:
+  - title: Énergie
+    path: energie
+    icon: mdi:solar-power-variant
+    type: sections
+    max_columns: 3
+    sections:
+      - type: grid
+        cards:
+          - type: heading
+            heading: Maintenant
+            icon: mdi:flash
+          - type: gauge
+            entity: sensor.gestionnaire_d_energie_puissance_disponible
+            name: Disponible
+            unit: W
+            min: -3000
+            max: 6000
+            needle: true
+            severity:
+              red: -3000
+              yellow: 0
+              green: 500
+          - type: gauge
+            entity: sensor.gestionnaire_d_energie_puissance_reseau
+            name: Réseau
+            unit: W
+            min: -6000
+            max: 6000
+            needle: true
+            severity:
+              green: -6000
+              yellow: 0
+              red: 1000
+          - type: tile
+            entity: sensor.production_solaire
+            name: Production solaire
+            icon: mdi:solar-panel
+          - type: tile
+            entity: sensor.consommation_maison
+            name: Consommation maison
+            icon: mdi:home-lightning-bolt
+          - type: tile
+            entity: switch.gestionnaire_d_energie_pilotage_automatique
+            name: Pilotage automatique
+            icon: mdi:robot
+            grid_options:
+              columns: full
+            features:
+              - type: toggle
+
+      - type: grid
+        cards:
+          - type: heading
+            heading: Équipements
+            icon: mdi:power-plug
+          - type: tile
+            entity: sensor.gestionnaire_d_energie_etat_chauffe_eau
+            name: Chauffe-eau
+            icon: mdi:water-boiler
+          - type: tile
+            entity: switch.ballon_ecs
+            name: Relais ballon
+          - type: tile
+            entity: sensor.gestionnaire_d_energie_etat_piscine
+            name: Piscine
+            icon: mdi:pool
+          - type: tile
+            entity: switch.pompe_piscine
+            name: Pompe
+          - type: tile
+            entity: sensor.gestionnaire_d_energie_etat_clim
+            name: Clim / chauffage
+            icon: mdi:air-conditioner
+          - type: tile
+            entity: climate.salon
+            name: Consigne
+            features:
+              - type: target-temperature
+          - type: entities
+            title: Aujourd'hui
+            grid_options:
+              columns: full
+            entities:
+              - entity: sensor.gestionnaire_d_energie_chauffe_eau_chauffe_du_jour
+                name: Chauffe du ballon
+              - entity: sensor.gestionnaire_d_energie_piscine_filtration_du_jour
+                name: Filtration effectuée
+              - entity: sensor.gestionnaire_d_energie_piscine_filtration_requise
+                name: Filtration requise
+          - type: entities
+            title: Pilotage automatique par équipement
+            grid_options:
+              columns: full
+            entities:
+              - entity: switch.gestionnaire_d_energie_chauffe_eau_automatique
+                name: Chauffe-eau
+              - entity: switch.gestionnaire_d_energie_piscine_automatique
+                name: Piscine
+              - entity: switch.gestionnaire_d_energie_clim_automatique
+                name: Clim
+
+      - type: grid
+        column_span: 1
+        cards:
+          - type: heading
+            heading: Historique
+            icon: mdi:chart-line
+          - type: history-graph
+            title: Puissances (24 h)
+            hours_to_show: 24
+            grid_options:
+              columns: full
+            entities:
+              - entity: sensor.production_solaire
+                name: Production
+              - entity: sensor.consommation_maison
+                name: Consommation
+              - entity: sensor.gestionnaire_d_energie_puissance_reseau
+                name: Réseau
+              - entity: sensor.gestionnaire_d_energie_puissance_disponible
+                name: Disponible
+          - type: history-graph
+            title: Décisions (24 h)
+            hours_to_show: 24
+            grid_options:
+              columns: full
+            entities:
+              - entity: sensor.gestionnaire_d_energie_etat_chauffe_eau
+                name: Chauffe-eau
+              - entity: sensor.gestionnaire_d_energie_etat_piscine
+                name: Piscine
+              - entity: sensor.gestionnaire_d_energie_etat_clim
+                name: Clim
