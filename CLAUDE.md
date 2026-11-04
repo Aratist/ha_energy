@@ -53,6 +53,7 @@ sans couper DTR/RTS redémarre la carte et interrompt un appairage en cours.
   puis la carte-clé sur la console : la voiture ne propose rien dans son menu Bluetooth.
 - `packages/evcc.yml` ne sert qu'avec EVCC : la recharge se pilote avec les entités de `client.yml`.
 - La recharge n'est pas encore pilotée par `energy_manager` : l'ajouter une fois l'appairage réussi.
+  Comparaison des solutions de pilotage gratuites : [TESLA_Module.md](TESLA_Module.md).
 
 ### Tableau de bord « Analyse énergie »
 
