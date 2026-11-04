@@ -1,0 +1,82 @@
+# ESP32 relais Bluetooth pour la Tesla : commande de la recharge depuis Home Assistant.
+# Composant : https://github.com/PedroKTFC/esphome-tesla-ble (fork de yoziru/esphome-tesla-ble)
+#
+# À renseigner dans le secrets.yaml d'ESPHome :
+#   ble_mac_tesla      : adresse MAC Bluetooth de la voiture (format AA:BB:CC:DD:EE:FF)
+#   tesla_vin          : VIN de la voiture (17 caractères)
+#   ota_password       : mot de passe OTA (exigé par le paquet)
+#   wifi_ssid / wifi_password, wifi_ssid2 / wifi_password2, wifi_ssid4 / wifi_password4
+#   wifi_hotspot_password : mot de passe du point d'accès de secours (exigé par le paquet)
+# Si la MAC ou le VIN sont faux, la voiture refuse l'appairage.
+#
+# Trouver la MAC : décommenter packages/listener.yml, installer, puis chercher dans les logs
+# « Found Tesla vehicle | Name: S…C | MAC: … ». Recommenter ensuite la ligne et réinstaller.
+# Ou bien utiliser nRF Connect sur Android : appareil nommé « S » + 16 caractères hexa + « C ».
+#
+# Appairage (assis dans la voiture, ESP32 à portée : le capteur « Signal BLE » a une valeur) :
+#   1. Home Assistant → Appareils → Tesla BLE → section Diagnostic → bouton « Appairage clé BLE ».
+#   2. Poser la carte-clé sur la console centrale, puis confirmer sur l'écran de la voiture.
+#   3. Vérifier dans Commandes → Verrous : une clé « Unknown device » apparaît.
+#   Sans invite à l'écran : relancer le bouton et reposer la carte.
+# La voiture ne propose rien dans son menu Bluetooth : c'est l'ESP32 qui lance l'appairage.
+#
+# Recharge : les entités Charge, Ampérage de charge, Limite de charge et Trappe de charge
+# viennent de client.yml. packages/evcc.yml ne sert qu'avec le logiciel EVCC : ne pas l'ajouter.
+
+substitutions:
+  friendly_name: Tesla BLE
+  device_name: tesla-ble
+  device_description: Tesla BLE
+  # Ampérage maximal réglable depuis Home Assistant.
+  charging_amps_max: "16"
+
+  ble_mac_address: !secret ble_mac_tesla
+  tesla_vin: !secret tesla_vin
+
+  # Version figée : le paquet YAML (ref ci-dessous) et les composants C++ doivent correspondre.
+  # La bibliothèque TeslaBLE (substitution BLE_library) suit toujours sa branche principale.
+  tesla_ble_component: "github://PedroKTFC/esphome-tesla-ble@v2026.10.0"
+
+  # Valeurs par défaut du paquet, à changer seulement pour une autre carte.
+  board: "esp32dev"
+  variant: "ESP32"
+
+web_server:
+  version: 3
+
+api:
+
+wifi:
+  # Le paquet ajoute déjà wifi_ssid et le point d'accès de secours.
+  networks:
+    - ssid: !secret wifi_ssid2
+      password: !secret wifi_password2
+    - ssid: !secret wifi_ssid4
+      password: !secret wifi_password4
+
+packages:
+  remote_package_files:
+    url: https://github.com/PedroKTFC/esphome-tesla-ble/
+    ref: v2026.10.0
+    files:
+      - packages/base.yml
+      - packages/common.yml
+      - packages/project.yml
+      - packages/client.yml
+      # - packages/listener.yml  # Seulement pour trouver la MAC de la voiture.
+      - packages/language_fr.yml
+
+# Dans language_fr.yml, deux paires d'entités portent le même nom ; les renommer ici
+# ou dans Home Assistant pour les distinguer :
+#   « État de charge »   : charge_state (niveau de batterie) et charging_state (état de la recharge)
+#   « Limite de charge » : max_soc (capteur) et charging_limit (réglage)
+#
+# Réglages d'interrogation (valeurs par défaut) ; décommenter tesla_ble_vehicle: pour les changer.
+# tesla_ble_vehicle:
+#  update_interval: 10s # Interrogation de base, capteurs VCSEC
+#  post_wake_poll_time: 300 # Durée d'interrogation rapide après le réveil (s)
+#  poll_data_period: 60 # Période pendant cette durée (s)
+#  poll_charging_period: 10 # Période pendant la recharge (s)
+#  poll_asleep_period: 60 # Période quand la voiture dort (s)
+#  ble_disconnected_min_time: 300 # Délai avant de passer les capteurs à « Inconnu » (s)
+#  fast_poll_if_unlocked: 1 # Interrogation rapide quand la voiture est déverrouillée

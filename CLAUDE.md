@@ -45,6 +45,15 @@ lancer ESPHome depuis PowerShell, pas Git Bash (l'ESP-IDF refuse MSYS), avec des
 courts (`ESPHOME_ESP_IDF_PREFIX=C:\esp\idf`, projet dans `C:\esp\`). Ouvrir le port série
 sans couper DTR/RTS redémarre la carte et interrompt un appairage en cours.
 
+### Tesla : relais Bluetooth (appairage en cours)
+
+- ESP32 dédié, distinct du relais Madoka, sous ESPHome avec le fork `PedroKTFC/esphome-tesla-ble` (v2026.10.0), entités en français.
+  Modèle : [examples/esphome/tesla-ble.yaml](examples/esphome/tesla-ble.yaml).
+- L'appairage se lance par le bouton « Appairage clé BLE » (section Diagnostic de l'appareil),
+  puis la carte-clé sur la console : la voiture ne propose rien dans son menu Bluetooth.
+- `packages/evcc.yml` ne sert qu'avec EVCC : la recharge se pilote avec les entités de `client.yml`.
+- La recharge n'est pas encore pilotée par `energy_manager` : l'ajouter une fois l'appairage réussi.
+
 ### Tableau de bord « Analyse énergie »
 
 - Tableau de bord en mode stockage (`url_path: energie-analyse`), reflété par
