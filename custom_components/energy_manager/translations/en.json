@@ -349,13 +349,13 @@
         "name": "Automatic control"
       },
       "water_heater_auto": {
-        "name": "Water heater automatic"
+        "name": "Water heater management"
       },
       "pool_auto": {
-        "name": "Pool automatic"
+        "name": "Pool management"
       },
       "climate_auto": {
-        "name": "Climate automatic"
+        "name": "Climate management"
       }
     }
   }
