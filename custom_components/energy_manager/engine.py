@@ -13,7 +13,7 @@ heures creuses. Sinon il est rattrapé pendant les heures creuses.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, time, timedelta
+from datetime import date, datetime, time, timedelta
 
 from .const import LOAD_CLIMATE, LOAD_POOL, LOAD_WATER_HEATER
 
@@ -50,6 +50,12 @@ PRIORITY = {
     SEASON_SUMMER: [LOAD_WATER_HEATER, LOAD_POOL, LOAD_CLIMATE],
 }
 
+# Périodes calendaires des cumuls d'économie solaire (semaine ISO, mois, année).
+PERIOD_WEEK = "week"
+PERIOD_MONTH = "month"
+PERIOD_YEAR = "year"
+PERIODS = (PERIOD_WEEK, PERIOD_MONTH, PERIOD_YEAR)
+
 # Le « boost » de la clim stocke de la chaleur pour le soir (heures pleines) :
 # il n'est rentable que couvert entièrement par le solaire.
 CLIMATE_START_FRACTION = 1.0
@@ -71,9 +77,12 @@ class Tariff:
     def rentable_fraction(self) -> float:
         """Part de la puissance d'un appareil que le surplus doit couvrir pour
         qu'un démarrage en heures pleines coûte au plus autant qu'en heures
-        creuses : (1-f)·HP + f·export ≤ HC  ⇔  f ≥ (HP-HC)/(HP-export)."""
+        creuses : (1-f)·HP + f·export ≤ HC  ⇔  f ≥ (HP-HC)/(HP-export).
+
+        Si la revente vaut au moins le prix HP, vendre rapporte plus que de
+        consommer : rien ne démarre sur surplus en heures pleines."""
         if self.peak <= self.export:
-            return 0.0
+            return 1.0
         return max(0.0, min(1.0, (self.peak - self.offpeak) / (self.peak - self.export)))
 
 
@@ -148,6 +157,20 @@ def cycle_bounds(now: datetime, reset: time) -> tuple[datetime, datetime]:
     if start > now:
         start -= timedelta(days=1)
     return start, start + timedelta(days=1)
+
+
+def period_start(day: date, period: str) -> date:
+    """Premier jour de la période calendaire contenant `day` : lundi de la
+    semaine (ISO), 1er du mois ou 1er janvier."""
+    if isinstance(day, datetime):
+        day = day.date()
+    if period == PERIOD_WEEK:
+        return day - timedelta(days=day.weekday())
+    if period == PERIOD_MONTH:
+        return day.replace(day=1)
+    if period == PERIOD_YEAR:
+        return day.replace(month=1, day=1)
+    raise ValueError(f"Période inconnue : {period}")
 
 
 def available_power(grid_power: float | None, loads: list[Load]) -> float | None:

@@ -103,6 +103,12 @@ views:
                 name: Coût réseau
               - entity: sensor.gestionnaire_d_energie_economie_solaire_du_jour
                 name: Économie solaire
+              - entity: sensor.gestionnaire_d_energie_economie_solaire_de_la_semaine
+                name: Économie solaire (semaine)
+              - entity: sensor.gestionnaire_d_energie_economie_solaire_du_mois
+                name: Économie solaire (mois)
+              - entity: sensor.gestionnaire_d_energie_economie_solaire_de_l_annee
+                name: Économie solaire (année)
               - entity: sensor.gestionnaire_d_energie_soutirage_du_jour
                 name: Soutirage
               - entity: sensor.gestionnaire_d_energie_injection_du_jour

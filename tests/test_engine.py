@@ -1,6 +1,6 @@
 """Tests du moteur de décision (sans Home Assistant)."""
 
-from datetime import datetime, time
+from datetime import date, datetime, time
 import importlib.util
 from pathlib import Path
 import sys
@@ -67,7 +67,12 @@ def test_rentable_fraction_with_export_is_higher():
     with_export = Tariff(0.25, 0.20, export=0.10).rentable_fraction
     assert with_export > without
     assert Tariff(0.25, 0.25).rentable_fraction == 0.0
-    assert Tariff(0.10, 0.05, export=0.20).rentable_fraction == 0.0
+
+
+def test_rentable_fraction_never_when_export_pays_more_than_peak():
+    # Vendre rapporte plus que consommer : on attend les heures creuses.
+    assert Tariff(0.10, 0.05, export=0.20).rentable_fraction == 1.0
+    assert Tariff(0.10, 0.05, export=0.10).rentable_fraction == 1.0
 
 
 def test_price_by_period():
@@ -196,6 +201,38 @@ def test_cycle_bounds():
     assert start == datetime(2026, 6, 30, 6, 0) and end == datetime(2026, 7, 1, 6, 0)
     start, _ = engine.cycle_bounds(datetime(2026, 7, 1, 7, 0), time(6))
     assert start == datetime(2026, 7, 1, 6, 0)
+
+
+def test_period_start_week_is_iso_monday():
+    # Mercredi 4 novembre 2026 → lundi 2 novembre
+    assert engine.period_start(date(2026, 11, 4), "week") == date(2026, 11, 2)
+    # Un lundi est son propre début de semaine ; un dimanche remonte 6 jours.
+    assert engine.period_start(date(2026, 11, 2), "week") == date(2026, 11, 2)
+    assert engine.period_start(date(2026, 11, 8), "week") == date(2026, 11, 2)
+    # Semaine à cheval sur deux mois : 1er août 2026 (samedi) → lundi 27 juillet
+    assert engine.period_start(date(2026, 8, 1), "week") == date(2026, 7, 27)
+    # Semaine à cheval sur deux années : 1er janvier 2027 (vendredi) → 28 déc. 2026
+    assert engine.period_start(date(2027, 1, 1), "week") == date(2026, 12, 28)
+
+
+def test_period_start_month_and_year():
+    assert engine.period_start(date(2026, 11, 30), "month") == date(2026, 11, 1)
+    assert engine.period_start(date(2026, 12, 31), "year") == date(2026, 1, 1)
+    assert engine.period_start(date(2027, 1, 1), "month") == date(2027, 1, 1)
+    assert engine.period_start(date(2027, 1, 1), "year") == date(2027, 1, 1)
+    # Année bissextile
+    assert engine.period_start(date(2028, 2, 29), "month") == date(2028, 2, 1)
+
+
+def test_period_start_accepts_datetime_and_rejects_unknown_period():
+    assert engine.period_start(datetime(2026, 11, 4, 23, 59), "week") == date(2026, 11, 2)
+    assert type(engine.period_start(datetime(2026, 11, 4), "month")) is date
+    try:
+        engine.period_start(date(2026, 11, 4), "decade")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("période inconnue acceptée")
 
 
 def test_pool_required_hours():
