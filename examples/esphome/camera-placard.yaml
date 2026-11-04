@@ -1,0 +1,215 @@
+# ESP32-S3 caméra du placard : caméra, micro I2S, haut-parleur I2S, contact de porte, anneau LED.
+# Projet complet (câblage, scénario, boîtier, PCB) : CAMERA_PLACARD.md à la racine du dépôt.
+#
+# Carte supposée : ESP32-S3 « CAM » au brochage caméra ESP32-S3-EYE (Freenove ESP32-S3 WROOM CAM,
+# clones « ESP32-S3-CAM N8R8/N16R8 »), capteur OV2640 ou OV5640, PSRAM octale.
+# Autre carte : changer les broches dans substitutions.
+#
+# Ne pas insérer de carte microSD : GPIO38 et GPIO39 sont ses broches sur la carte Freenove.
+#
+# À renseigner dans le secrets.yaml d'ESPHome : placard_api_key, placard_ota_password.
+# Wi-Fi : point d'accès « Placard Fallback » au premier démarrage, comme le relais Madoka.
+
+substitutions:
+  flash_size: 8MB          # 16MB pour une carte N16R8.
+
+  # Caméra (brochage ESP32-S3-EYE).
+  cam_xclk: GPIO15
+  cam_sda: GPIO4
+  cam_scl: GPIO5
+  cam_vsync: GPIO6
+  cam_href: GPIO7
+  cam_pclk: GPIO13
+
+  # Micro INMP441.
+  micro_bclk: GPIO41
+  micro_ws: GPIO42
+  micro_sd: GPIO1
+
+  # Ampli MAX98357A.
+  hp_bclk: GPIO21
+  hp_lrc: GPIO47
+  hp_din: GPIO14
+
+  # Contact de porte (ILS) et anneau WS2812.
+  porte_pin: GPIO38
+  led_pin: GPIO39
+  led_nombre: "12"
+
+esphome:
+  name: camera-placard
+  friendly_name: Caméra placard
+  min_version: 2025.5.0
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: ${flash_size}
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+
+api:
+  encryption:
+    key: !secret placard_api_key
+
+ota:
+  - platform: esphome
+    password: !secret placard_ota_password
+
+wifi:
+  ap:
+    ssid: "Placard Fallback"
+  # Le Wi-Fi en économie d'énergie hache l'audio et la vidéo.
+  power_save_mode: none
+
+captive_portal:
+
+web_server:
+  port: 80
+  version: 3
+
+# Bus SCCB de la caméra.
+i2c:
+  - id: bus_camera
+    sda: ${cam_sda}
+    scl: ${cam_scl}
+
+esp32_camera:
+  id: camera_placard
+  name: Caméra
+  external_clock:
+    pin: ${cam_xclk}
+    frequency: 20MHz
+  i2c_id: bus_camera
+  data_pins: [GPIO11, GPIO9, GPIO8, GPIO10, GPIO12, GPIO18, GPIO17, GPIO16]
+  vsync_pin: ${cam_vsync}
+  href_pin: ${cam_href}
+  pixel_clock_pin: ${cam_pclk}
+  # 800x600 suffit à la reconnaissance de visage à moins d'un mètre.
+  resolution: 800x600
+  jpeg_quality: 12
+  max_framerate: 5 fps
+  # Hors ouverture du placard, la caméra n'envoie presque rien.
+  idle_framerate: 0.05 fps
+  # À ajuster selon le sens de montage de la caméra dans le boîtier.
+  vertical_flip: true
+  horizontal_mirror: true
+
+i2s_audio:
+  - id: i2s_micro
+    i2s_bclk_pin: ${micro_bclk}
+    i2s_lrclk_pin: ${micro_ws}
+  - id: i2s_hp
+    i2s_bclk_pin: ${hp_bclk}
+    i2s_lrclk_pin: ${hp_lrc}
+
+microphone:
+  - platform: i2s_audio
+    id: micro
+    i2s_audio_id: i2s_micro
+    i2s_din_pin: ${micro_sd}
+    adc_type: external
+    pdm: false
+    # Broche L/R de l'INMP441 reliée à la masse : canal gauche.
+    channel: left
+    bits_per_sample: 32bit
+
+speaker:
+  - platform: i2s_audio
+    id: hp
+    i2s_audio_id: i2s_hp
+    i2s_dout_pin: ${hp_din}
+    dac_type: external
+    channel: mono
+    sample_rate: 48000
+    bits_per_sample: 16bit
+
+media_player:
+  - platform: speaker
+    id: lecteur
+    name: Haut-parleur
+    volume_initial: 0.7
+    announcement_pipeline:
+      speaker: hp
+      format: FLAC
+      num_channels: 1
+      sample_rate: 48000
+
+# Le micro n'écoute le mot d'activation « Okay Nabu » que porte ouverte.
+micro_wake_word:
+  id: mot_activation
+  microphone: micro
+  models:
+    - model: okay_nabu
+  on_wake_word_detected:
+    - voice_assistant.start:
+        wake_word: !lambda return wake_word;
+
+voice_assistant:
+  id: assistant
+  microphone: micro
+  media_player: lecteur
+  noise_suppression_level: 2
+  auto_gain: 31dBFS
+  volume_multiplier: 2.0
+  on_end:
+    - if:
+        condition:
+          binary_sensor.is_on: porte
+        then:
+          - micro_wake_word.start:
+
+binary_sensor:
+  # Contact magnétique : fermé (aimant présent) quand la porte est fermée.
+  # Porte ouverte : contact ouvert, l'entrée remonte à 3,3 V par le pull-up.
+  - platform: gpio
+    id: porte
+    name: Porte
+    device_class: door
+    pin:
+      number: ${porte_pin}
+      mode:
+        input: true
+        pullup: true
+    filters:
+      - delayed_on: 50ms
+      - delayed_off: 500ms
+    on_press:
+      # Éclaire le visage avant la photo prise par Home Assistant.
+      - light.turn_on:
+          id: eclairage
+          brightness: 80%
+          # Blanc neutre.
+          red: 100%
+          green: 90%
+          blue: 75%
+      - micro_wake_word.start:
+    on_release:
+      - light.turn_off: eclairage
+      - micro_wake_word.stop:
+      - voice_assistant.stop:
+
+light:
+  - platform: esp32_rmt_led_strip
+    id: eclairage
+    name: Éclairage
+    pin: ${led_pin}
+    num_leds: ${led_nombre}
+    chipset: ws2812
+    channel_colors: GRB
+    default_transition_length: 300ms
+    color_correct: [80%, 80%, 80%]
+    effects:
+      - pulse:
+          name: Écoute
+
+sensor:
+  - platform: wifi_signal
+    name: Signal Wi-Fi
+    update_interval: 60s
