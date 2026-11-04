@@ -1,0 +1,51 @@
+{
+  "board": {
+    "design_settings": {
+      "rules": {
+        "min_clearance": 0.2,
+        "min_track_width": 0.2
+      }
+    }
+  },
+  "meta": {
+    "filename": "camera-placard.kicad_pro",
+    "version": 1
+  },
+  "net_settings": {
+    "classes": [
+      {
+        "name": "Default",
+        "clearance": 0.2,
+        "track_width": 0.3,
+        "via_diameter": 0.8,
+        "via_drill": 0.4
+      },
+      {
+        "name": "Puissance",
+        "clearance": 0.3,
+        "track_width": 0.8,
+        "via_diameter": 1.0,
+        "via_drill": 0.5
+      }
+    ],
+    "meta": {
+      "version": 3
+    },
+    "netclass_patterns": [
+      {
+        "netclass": "Puissance",
+        "pattern": "+5V"
+      },
+      {
+        "netclass": "Puissance",
+        "pattern": "GND"
+      }
+    ]
+  },
+  "sheets": [
+    [
+      "f8213ed2-1692-55e4-b798-959f7b2168de",
+      "Racine"
+    ]
+  ]
+}

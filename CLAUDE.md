@@ -55,6 +55,11 @@ sans couper DTR/RTS redémarre la carte et interrompt un appairage en cours.
 - La recharge n'est pas encore pilotée par `energy_manager` : l'ajouter une fois l'appairage réussi.
   Comparaison des solutions de pilotage gratuites : [TESLA_Module.md](TESLA_Module.md).
 
+### Caméra du placard (en projet)
+
+ESP32-S3 caméra, micro et haut-parleur dans le placard : météo pour Alexis, compliments pour
+Marie, entre 7 h et 9 h. Tout est décrit dans [CAMERA_PLACARD.md](CAMERA_PLACARD.md).
+
 ### Tableau de bord « Analyse énergie »
 
 - Tableau de bord en mode stockage (`url_path: energie-analyse`), reflété par
