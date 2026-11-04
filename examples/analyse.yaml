@@ -66,12 +66,15 @@ views:
                 name: Chauffe-eau
               - entity: switch.piscine_prise_1
                 name: Piscine
-              - entity: climate.daikinap85642
+              # Une entité climate s'affiche en courbe de température : on passe par
+              # un capteur binaire (aide Modèle) dont l'état est
+              # {{ states('climate.daikinap85642') not in ['off', 'unavailable', 'unknown'] }}
+              - entity: binary_sensor.clim_bas_allumee
                 name: Clim bas
-              - entity: switch.prise_sdb_bas
-                name: Jacuzzi
-              - entity: switch.priseboiteaulettre
-                name: Machine à laver
+              # Idem pour la clim du haut (relais Madoka) :
+              # {{ states('climate.relais_madoka_clim_madoka') not in ['off', 'unavailable', 'unknown'] }}
+              - entity: binary_sensor.clim_haut_allumee
+                name: Clim haut
 
       - type: grid
         cards:

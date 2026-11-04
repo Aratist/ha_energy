@@ -75,7 +75,9 @@ Le cycle journalier commence à la fin des heures creuses.
 - **Pilotage** : état de chaque équipement (solaire, marche forcée, confort, terminé, en
   attente…), durées de chauffe / filtration, saison active.
 - **Commandes** : sélecteur *Saison* (automatique / hiver / été), interrupteur *Pilotage
-  automatique* (global) et un interrupteur automatique par équipement.
+  automatique* (global) et un interrupteur *Gestion …* par équipement (piscine, clim,
+  chauffe-eau) : coupé, l'équipement n'est plus du tout touché, par exemple pour garder le
+  chauffage en télétravail ou piloter la pompe à la main pendant une vidange.
 
 ## Tableau de bord
 

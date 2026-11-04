@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import Any
 
 from homeassistant.components.switch import SwitchEntity
-from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -27,13 +26,15 @@ async def async_setup_entry(
 
 
 class AutoSwitch(EnergyManagerEntity, SwitchEntity):
-    """Active ou suspend le pilotage automatique ; l'état est persisté."""
+    """Active ou suspend le pilotage automatique ; l'état est persisté.
+
+    Coupé, l'équipement n'est plus touché du tout (pilotage manuel).
+    Affiché dans « Contrôles » pour rester à portée de main.
+    """
 
     def __init__(self, coordinator: EnergyManagerCoordinator, key: str) -> None:
         super().__init__(coordinator, f"{key}_auto")
         self._key = key
-        if key != AUTO_MASTER:
-            self._attr_entity_category = EntityCategory.CONFIG
 
     @property
     def is_on(self) -> bool:

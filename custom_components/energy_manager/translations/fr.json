@@ -359,13 +359,13 @@
         "name": "Pilotage automatique"
       },
       "water_heater_auto": {
-        "name": "Chauffe-eau automatique"
+        "name": "Gestion chauffe-eau"
       },
       "pool_auto": {
-        "name": "Piscine automatique"
+        "name": "Gestion piscine"
       },
       "climate_auto": {
-        "name": "Clim automatique"
+        "name": "Gestion clim"
       }
     }
   }
