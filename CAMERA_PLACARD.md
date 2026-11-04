@@ -68,7 +68,7 @@ Porte ─ contact ILS ─► ESP32-S3 (ESPHome) ──Wi-Fi──► Home Assist
 | [examples/esphome/camera-placard.yaml](examples/esphome/camera-placard.yaml) | Configuration ESPHome |
 | [examples/homeassistant/camera_placard.yaml](examples/homeassistant/camera_placard.yaml) | Paquet Home Assistant : reconnaissance, météo, phrases, automatisation |
 | [hardware/camera-placard/cablage.svg](hardware/camera-placard/cablage.svg) | Schéma de câblage |
-| [hardware/camera-placard/boitier.scad](hardware/camera-placard/boitier.scad) | Boîtier OpenSCAD paramétrable : façade et fond |
+| [hardware/camera-placard/fusion/boitier_placard/](hardware/camera-placard/fusion/boitier_placard/) | Script Fusion 360 du boîtier : façade et fond, export STL et STEP |
 | [hardware/camera-placard/kicad/](hardware/camera-placard/kicad/) | Projet KiCad 8 du PCB porteur |
 
 ## Mise en service
@@ -107,8 +107,14 @@ ne répond pas.
 
 ## Boîtier imprimé en 3D
 
-[boitier.scad](hardware/camera-placard/boitier.scad), deux pièces sans support,
-intérieur 92 × 104 × 34 mm :
+Le boîtier se construit dans Fusion 360 avec le script
+[boitier_placard](hardware/camera-placard/fusion/boitier_placard/boitier_placard.py) :
+*Utilitaires → Scripts et compléments* (Maj+S), bouton « + », *Script ou complément depuis
+l'appareil*, choisir le dossier `boitier_placard`, puis *Exécuter*. Le script crée un nouveau
+document avec les composants « Façade » et « Fond », chacun fait d'esquisses et d'extrusions
+modifiables dans l'historique. Il exporte aussi les STL et STEP dans `boitier_placard/export/`.
+
+Deux pièces sans support, intérieur 92 × 104 × 34 mm :
 
 - **Façade**, en PLA blanc, imprimée face avant sur le plateau : trou d'objectif, logement
   de l'anneau LED derrière 0,8 mm de plastique qui diffuse la lumière, grille du haut-parleur,
@@ -116,8 +122,8 @@ intérieur 92 × 104 × 34 mm :
 - **Fond** : entretoises du PCB porteur, deux trous en serrure pour l'accrocher dans le
   placard, passe-fils pour l'alimentation et le contact de porte, aérations.
 
-Les cotes de la carte ESP32 (`esp`, `esp_camera_bord`, `esp_hauteur`) et de `camera_pos`
-viennent des fiches techniques : les mesurer sur la carte avant d'imprimer. Placer le boîtier
+Les cotes de la carte ESP32 (`ESP`, `ESP_CAMERA_BORD`, `ESP_HAUTEUR`) et `CAMERA_POS`, en tête
+du script, viennent des fiches techniques : les mesurer sur la carte avant d'imprimer. Placer le boîtier
 à hauteur de visage, objectif tourné vers l'ouverture de la porte.
 
 ## PCB porteur (KiCad)
@@ -150,7 +156,7 @@ Le PCB est facultatif : tout peut se câbler en fils Dupont sur une plaque à pa
 - [x] Scénario, matériel et câblage
 - [x] Configuration ESPHome (`esphome config` valide avec ESPHome 2026.10.2, pas encore compilée)
 - [x] Paquet Home Assistant (YAML et modèles vérifiés hors de Home Assistant)
-- [x] Boîtier OpenSCAD (pas encore rendu ni imprimé)
+- [x] Script Fusion 360 du boîtier (vérifié hors de Fusion seulement, pas encore lancé ni imprimé)
 - [x] Projet KiCad : schéma, placement, réseaux (pas encore ouvert dans KiCad)
 - [ ] Commander le micro, l'ampli, le haut-parleur, l'anneau LED et le contact de porte
 - [ ] Flasher l'ESP32, régler l'image de la caméra

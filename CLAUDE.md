@@ -55,6 +55,14 @@ sans couper DTR/RTS redémarre la carte et interrompt un appairage en cours.
 - La recharge n'est pas encore pilotée par `energy_manager` : l'ajouter une fois l'appairage réussi.
   Comparaison des solutions de pilotage gratuites : [TESLA_Module.md](TESLA_Module.md).
 
+### Boîtiers imprimés en 3D
+
+Tout boîtier demandé se livre en **script Python pour Fusion 360** (API `adsk`), que l'utilisateur
+lance dans Fusion : un dossier `<nom>/` avec `<nom>.py` et `<nom>.manifest`. Le script construit
+chaque pièce par esquisses et extrusions, pour que l'historique reste modifiable dans Fusion, et
+exporte les STL et STEP dans `export/` (ignoré par git). Pas d'OpenSCAD : Fusion 360 ne le lit pas.
+Exemple : [hardware/camera-placard/fusion/boitier_placard/](hardware/camera-placard/fusion/boitier_placard/).
+
 ### Caméra du placard (en projet)
 
 ESP32-S3 caméra, micro et haut-parleur dans le placard : météo pour Alexis, compliments pour
