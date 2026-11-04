@@ -77,3 +77,10 @@ Marie, entre 7 h et 9 h. Tout est décrit dans [CAMERA_PLACARD.md](CAMERA_PLACAR
 - Une entité `climate` s'y affiche en courbe de température. Chaque clim passe donc par un
   capteur binaire (aide Modèle) : `binary_sensor.clim_bas_allumee` et
   `binary_sensor.clim_haut_allumee`, allumés quand la clim n'est pas `off`.
+- Onglets « Aujourd'hui », « Solaire », « Appareils », « Économies & climat » : graphiques
+  `custom:apexcharts-card` (HACS). Pour modifier le tableau de bord, éditer
+  `examples/analyse.yaml`, puis l'envoyer dans HA (`lovelace/config/save`).
+- Les compteurs « du jour » de `energy_manager` (soutirage, coût, économie, chauffe, filtration…)
+  repartent de zéro **à 6 h**, pas à minuit. Graphique par jour tiré de l'historique :
+  `group_by: max 1d` avec `span: {end: day, offset: +6h}`. Depuis les statistiques
+  long terme, prendre la variation (`change`), jamais `max` ni `state`.

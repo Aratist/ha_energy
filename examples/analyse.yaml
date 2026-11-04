@@ -1,9 +1,12 @@
 # Tableau de bord « Analyse énergie » : courbes de consommation / production,
 # allumage et consommation de chaque appareil, décisions de l'intégration.
 #
-# Cartes natives uniquement. Les appareils utilisent directement les capteurs
-# des prises connectées (historique disponible dès l'installation des prises).
+# Vue « Analyse » : cartes natives uniquement. Les appareils utilisent directement
+# les capteurs des prises connectées (historique disponible dès l'installation des prises).
 # À adapter : les entités des prises et équipements marquées « vos entités ».
+#
+# Vues « Aujourd'hui », « Solaire », « Appareils » et « Économies & climat » :
+# carte HACS apexcharts-card (RomRider/apexcharts-card), à installer depuis HACS.
 
 title: Analyse énergie
 views:
@@ -165,3 +168,779 @@ views:
                 name: Extérieur
               - entity: sensor.zhi_neng_tai_yang_neng_yu_lu_temperature
                 name: Piscine
+
+  - title: Aujourd'hui
+    path: aujourd-hui
+    icon: mdi:white-balance-sunny
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: En ce moment
+            icon: mdi:flash
+          - type: grid
+            columns: 3
+            square: false
+            grid_options:
+              columns: full
+            cards:
+              - type: gauge
+                entity: sensor.gestionnaire_d_energie_production_solaire
+                name: Production
+                unit: W
+                min: 0
+                max: 3240
+                needle: true
+                segments:
+                  - from: 0
+                    color: '#9e9e9e'
+                  - from: 300
+                    color: '#f5b400'
+                  - from: 1500
+                    color: '#43a047'
+              - type: gauge
+                entity: sensor.gestionnaire_d_energie_consommation
+                name: Consommation
+                unit: W
+                min: 0
+                max: 6000
+                needle: true
+                segments:
+                  - from: 0
+                    color: '#43a047'
+                  - from: 2000
+                    color: '#f5b400'
+                  - from: 4000
+                    color: '#e53935'
+              - type: gauge
+                entity: sensor.gestionnaire_d_energie_puissance_reseau
+                name: Réseau
+                unit: W
+                min: -3240
+                max: 6000
+                needle: true
+                segments:
+                  - from: -3240
+                    color: '#43a047'
+                  - from: 0
+                    color: '#f5b400'
+                  - from: 2000
+                    color: '#e53935'
+
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Puissances du jour
+            icon: mdi:chart-areaspline
+          - type: custom:apexcharts-card
+            grid_options:
+              columns: full
+            header:
+              show: true
+              title: Production, consommation et réseau
+              show_states: true
+              colorize_states: true
+            graph_span: 24h
+            span:
+              start: day
+            now:
+              show: true
+              label: Maintenant
+            yaxis:
+              - decimals: 0
+            apex_config:
+              chart:
+                height: 340
+              legend:
+                show: true
+              fill:
+                type: gradient
+                gradient:
+                  opacityFrom: 0.55
+                  opacityTo: 0.05
+            all_series_config:
+              stroke_width: 2
+              curve: smooth
+              float_precision: 0
+              group_by:
+                func: avg
+                duration: 10min
+            series:
+              - entity: sensor.gestionnaire_d_energie_production_solaire
+                name: Production
+                type: area
+                color: '#f5b400'
+              - entity: sensor.gestionnaire_d_energie_consommation
+                name: Consommation
+                type: area
+                color: '#3b82f6'
+              - entity: sensor.gestionnaire_d_energie_puissance_reseau
+                name: Réseau (+ import / − export)
+                type: line
+                color: '#e53935'
+              - entity: sensor.power_production_now
+                name: Prévision solaire
+                type: line
+                color: '#9e9e9e'
+                stroke_dash: 6
+                show:
+                  in_header: false
+
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Les 7 dernières journées
+            icon: mdi:calendar-week
+          # Les compteurs « du jour » de l'intégration repartent de zéro à 6 h
+          # (journée tarifaire) : chaque barre couvre 6 h → 6 h (span.offset).
+          - type: custom:apexcharts-card
+            grid_options:
+              columns: full
+            header:
+              show: true
+              title: Coût réseau et économie solaire (€ / journée)
+              show_states: true
+              colorize_states: true
+            graph_span: 7d
+            span:
+              end: day
+              offset: +6h
+            yaxis:
+              - min: 0
+                decimals: 2
+            apex_config:
+              chart:
+                height: 260
+              legend:
+                show: true
+              plotOptions:
+                bar:
+                  borderRadius: 4
+                  columnWidth: 70%
+            all_series_config:
+              type: column
+              float_precision: 2
+              group_by:
+                func: max
+                duration: 1d
+            series:
+              - entity: sensor.gestionnaire_d_energie_cout_reseau_du_jour
+                name: Coût réseau
+                color: '#e53935'
+              - entity: sensor.gestionnaire_d_energie_economie_solaire_du_jour
+                name: Économie solaire
+                color: '#43a047'
+          - type: custom:apexcharts-card
+            grid_options:
+              columns: full
+            header:
+              show: true
+              title: Soutirage et autoconsommation (kWh / journée)
+              show_states: true
+              colorize_states: true
+            graph_span: 7d
+            span:
+              end: day
+              offset: +6h
+            yaxis:
+              - min: 0
+                decimals: 1
+            apex_config:
+              chart:
+                height: 260
+              legend:
+                show: true
+              plotOptions:
+                bar:
+                  borderRadius: 4
+                  columnWidth: 70%
+            all_series_config:
+              type: column
+              float_precision: 1
+              group_by:
+                func: max
+                duration: 1d
+            series:
+              - entity: sensor.gestionnaire_d_energie_soutirage_du_jour
+                name: Soutirage
+                color: '#3b82f6'
+              - entity: sensor.gestionnaire_d_energie_autoconsommation_du_jour
+                name: Autoconsommation
+                color: '#f5b400'
+
+  - title: Solaire
+    path: solaire
+    icon: mdi:solar-power-variant
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Production par jour
+            icon: mdi:solar-power-variant
+          - type: custom:apexcharts-card
+            grid_options:
+              columns: full
+            header:
+              show: true
+              title: Production réelle et prévision (kWh / jour, 10 jours)
+            graph_span: 10d
+            span:
+              end: day
+            yaxis:
+              - min: 0
+                decimals: 1
+            apex_config:
+              chart:
+                height: 300
+              legend:
+                show: true
+              plotOptions:
+                bar:
+                  borderRadius: 4
+                  columnWidth: 70%
+            series:
+              - entity: sensor.izypower_cloud_maison_marignane_production_jour
+                name: Production réelle
+                type: column
+                color: '#f5b400'
+                float_precision: 1
+                statistics:
+                  type: change
+                  period: day
+                  align: start
+              - entity: sensor.energy_production_today
+                name: Prévision
+                type: column
+                color: '#9e9e9e'
+                opacity: 0.6
+                float_precision: 1
+                group_by:
+                  func: last
+                  duration: 1d
+          - type: custom:apexcharts-card
+            grid_options:
+              columns: full
+            header:
+              show: true
+              title: Consommation et injection (kWh / jour, 14 jours)
+            graph_span: 14d
+            span:
+              end: day
+            stacked: true
+            yaxis:
+              - decimals: 1
+            apex_config:
+              chart:
+                height: 300
+              legend:
+                show: true
+              plotOptions:
+                bar:
+                  borderRadius: 3
+                  columnWidth: 70%
+            # Ces compteurs repartent de zéro à 6 h (journée tarifaire) : la variation
+            # des statistiques donne bien l'énergie de chaque jour calendaire.
+            all_series_config:
+              type: column
+              float_precision: 1
+              statistics:
+                type: change
+                period: day
+                align: start
+            series:
+              - entity: sensor.gestionnaire_d_energie_autoconsommation_du_jour
+                name: Autoconsommation
+                color: '#f5b400'
+              - entity: sensor.gestionnaire_d_energie_soutirage_du_jour
+                name: Soutirage
+                color: '#3b82f6'
+              - entity: sensor.gestionnaire_d_energie_injection_du_jour
+                name: Injection (en négatif)
+                color: '#43a047'
+                invert: true
+
+      - type: grid
+        cards:
+          - type: heading
+            heading: Taux du jour
+            icon: mdi:percent-circle
+          - type: custom:apexcharts-card
+            grid_options:
+              columns: full
+            chart_type: radialBar
+            header:
+              show: true
+              title: Part du solaire aujourd'hui
+            apex_config:
+              chart:
+                height: 300
+              legend:
+                show: true
+                position: bottom
+              plotOptions:
+                radialBar:
+                  hollow:
+                    size: 45%
+            series:
+              # Part de la production consommée sur place
+              - entity: sensor.gestionnaire_d_energie_autoconsommation_du_jour
+                name: Production consommée sur place
+                color: '#f5b400'
+                unit: '%'
+                float_precision: 0
+                max: 100
+                transform: >-
+                  const a = parseFloat(x);
+                  const i = parseFloat(hass.states['sensor.gestionnaire_d_energie_injection_du_jour'].state);
+                  return a + i > 0 ? a / (a + i) * 100 : 0;
+              # Part des besoins couverts par le solaire
+              - entity: sensor.gestionnaire_d_energie_autoconsommation_du_jour
+                name: Besoins couverts par le solaire
+                color: '#43a047'
+                unit: '%'
+                float_precision: 0
+                max: 100
+                transform: >-
+                  const a = parseFloat(x);
+                  const s = parseFloat(hass.states['sensor.gestionnaire_d_energie_soutirage_du_jour'].state);
+                  return a + s > 0 ? a / (a + s) * 100 : 0;
+
+      - type: grid
+        cards:
+          - type: heading
+            heading: Micro-onduleurs
+            icon: mdi:solar-panel
+          - type: custom:apexcharts-card
+            grid_options:
+              columns: full
+            header:
+              show: true
+              title: Production par panneau (W, aujourd'hui)
+            graph_span: 24h
+            span:
+              start: day
+            stacked: true
+            apex_config:
+              chart:
+                height: 300
+              legend:
+                show: true
+            all_series_config:
+              type: area
+              curve: smooth
+              stroke_width: 1
+              opacity: 0.7
+              float_precision: 0
+              group_by:
+                func: avg
+                duration: 15min
+            series:
+              - entity: sensor.izypower_cloud_maison_marignane_milieu_6058000092be_izypower_cloud_maison_marignane_milieu_6058000092be_pv1
+                name: Milieu 1
+                color: '#ffd54f'
+              - entity: sensor.izypower_cloud_maison_marignane_milieu_6058000092be_izypower_cloud_maison_marignane_milieu_6058000092be_pv2
+                name: Milieu 2
+                color: '#ffb300'
+              - entity: sensor.izypower_cloud_maison_marignane_bord_maison_605800008e76_izypower_cloud_maison_marignane_bord_maison_605800008e76_pv1
+                name: Bord maison 1
+                color: '#ff8a65'
+              - entity: sensor.izypower_cloud_maison_marignane_bord_maison_605800008e76_izypower_cloud_maison_marignane_bord_maison_605800008e76_pv2
+                name: Bord maison 2
+                color: '#f4511e'
+              - entity: sensor.izypower_cloud_maison_marignane_bord_cheminee_605800008c4a_izypower_cloud_maison_marignane_bord_cheminee_605800008c4a_pv1
+                name: Bord cheminée 1
+                color: '#aed581'
+              - entity: sensor.izypower_cloud_maison_marignane_bord_cheminee_605800008c4a_izypower_cloud_maison_marignane_bord_cheminee_605800008c4a_pv2
+                name: Bord cheminée 2
+                color: '#7cb342'
+
+  - title: Appareils
+    path: appareils
+    icon: mdi:power-plug-outline
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Puissance des appareils
+            icon: mdi:flash
+          - type: custom:apexcharts-card
+            grid_options:
+              columns: full
+            header:
+              show: true
+              title: Puissance par appareil (W, 24 h)
+              show_states: true
+              colorize_states: true
+            graph_span: 24h
+            stacked: true
+            apex_config:
+              chart:
+                height: 320
+              legend:
+                show: true
+            all_series_config:
+              type: area
+              curve: smooth
+              stroke_width: 1
+              opacity: 0.7
+              float_precision: 0
+              group_by:
+                func: avg
+                duration: 10min
+            series:
+              - entity: sensor.chauffe_eau_puissance        # vos entités
+                name: Chauffe-eau
+                color: '#ef6c00'
+              - entity: sensor.piscine_puissance
+                name: Piscine
+                color: '#00acc1'
+              - entity: sensor.puissance_clim_bas
+                name: Clim bas
+                color: '#5c6bc0'
+              - entity: sensor.prise_sdb_bas_puissance
+                name: Jacuzzi
+                color: '#8e24aa'
+              - entity: sensor.priseboiteaulettre_puissance
+                name: Machine à laver
+                color: '#78909c'
+
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Énergie par jour
+            icon: mdi:calendar-month
+          - type: custom:apexcharts-card
+            grid_options:
+              columns: full
+            header:
+              show: true
+              title: Énergie par appareil (kWh / jour, 14 jours)
+            graph_span: 14d
+            span:
+              end: day
+            stacked: true
+            apex_config:
+              chart:
+                height: 320
+              legend:
+                show: true
+              plotOptions:
+                bar:
+                  borderRadius: 3
+                  columnWidth: 70%
+            all_series_config:
+              type: column
+              float_precision: 2
+              statistics:
+                type: change
+                period: day
+                align: start
+            series:
+              - entity: sensor.chauffe_eau_energie_jour     # vos entités
+                name: Chauffe-eau
+                color: '#ef6c00'
+              - entity: sensor.piscine_energie_jour
+                name: Piscine
+                color: '#00acc1'
+              - entity: sensor.daikinap85642_climatecontrol_heating_daily_electrical_consumption
+                name: Clim bas (chauffage)
+                color: '#5c6bc0'
+              - entity: sensor.daikinap85642_climatecontrol_cooling_daily_electrical_consumption
+                name: Clim bas (froid)
+                color: '#90caf9'
+              - entity: sensor.prise_sdb_bas_consommation
+                name: Jacuzzi
+                color: '#8e24aa'
+              - entity: sensor.priseboiteaulettre_consommation
+                name: Machine à laver
+                color: '#78909c'
+
+      - type: grid
+        cards:
+          - type: heading
+            heading: Répartition du mois
+            icon: mdi:chart-donut
+          - type: custom:apexcharts-card
+            grid_options:
+              columns: full
+            chart_type: donut
+            header:
+              show: true
+              title: Énergie du mois en cours (kWh)
+            graph_span: 1month
+            span:
+              start: month
+            apex_config:
+              chart:
+                height: 320
+              legend:
+                show: true
+                position: bottom
+            all_series_config:
+              float_precision: 1
+              statistics:
+                type: change
+                period: month
+                align: start
+            series:
+              - entity: sensor.chauffe_eau_energie_jour     # vos entités
+                name: Chauffe-eau
+                color: '#ef6c00'
+              - entity: sensor.piscine_energie_jour
+                name: Piscine
+                color: '#00acc1'
+              - entity: sensor.daikinap85642_climatecontrol_heating_daily_electrical_consumption
+                name: Clim bas (chauffage)
+                color: '#5c6bc0'
+              - entity: sensor.daikinap85642_climatecontrol_cooling_daily_electrical_consumption
+                name: Clim bas (froid)
+                color: '#90caf9'
+              - entity: sensor.prise_sdb_bas_consommation
+                name: Jacuzzi
+                color: '#8e24aa'
+              - entity: sensor.priseboiteaulettre_consommation
+                name: Machine à laver
+                color: '#78909c'
+
+      - type: grid
+        cards:
+          - type: heading
+            heading: Durées de fonctionnement
+            icon: mdi:timer-outline
+          # Compteurs remis à zéro à 6 h : barres sur la journée tarifaire.
+          - type: custom:apexcharts-card
+            grid_options:
+              columns: full
+            header:
+              show: true
+              title: Chauffe et filtration (min / journée, 7 jours)
+              show_states: true
+              colorize_states: true
+            graph_span: 7d
+            span:
+              end: day
+              offset: +6h
+            yaxis:
+              - min: 0
+                decimals: 0
+            apex_config:
+              chart:
+                height: 280
+              legend:
+                show: true
+              plotOptions:
+                bar:
+                  borderRadius: 4
+                  columnWidth: 70%
+            all_series_config:
+              type: column
+              float_precision: 0
+              group_by:
+                func: max
+                duration: 1d
+            series:
+              - entity: sensor.gestionnaire_d_energie_chauffe_eau_chauffe_du_jour
+                name: Chauffe du chauffe-eau
+                color: '#ef6c00'
+              - entity: sensor.gestionnaire_d_energie_piscine_filtration_du_jour
+                name: Filtration de la piscine
+                color: '#00acc1'
+
+  - title: Économies & climat
+    path: economies-climat
+    icon: mdi:piggy-bank-outline
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        cards:
+          - type: heading
+            heading: Économies
+            icon: mdi:piggy-bank
+          - type: custom:apexcharts-card
+            grid_options:
+              columns: full
+            header:
+              show: true
+              title: Économie solaire et coût réseau (€ / journée, 10 jours)
+              show_states: true
+              colorize_states: true
+            graph_span: 10d
+            # Compteurs remis à zéro à 6 h : barres sur la journée tarifaire.
+            span:
+              end: day
+              offset: +6h
+            yaxis:
+              - min: 0
+                decimals: 2
+            apex_config:
+              chart:
+                height: 300
+              legend:
+                show: true
+              plotOptions:
+                bar:
+                  borderRadius: 4
+                  columnWidth: 70%
+            all_series_config:
+              type: column
+              float_precision: 2
+              group_by:
+                func: max
+                duration: 1d
+            series:
+              - entity: sensor.gestionnaire_d_energie_economie_solaire_du_jour
+                name: Économie solaire
+                color: '#43a047'
+              - entity: sensor.gestionnaire_d_energie_cout_reseau_du_jour
+                name: Coût réseau
+                color: '#e53935'
+          - type: custom:apexcharts-card
+            grid_options:
+              columns: full
+            header:
+              show: true
+              title: Prix de l'électricité (€ / kWh, 48 h)
+              show_states: true
+              colorize_states: true
+            graph_span: 48h
+            yaxis:
+              - decimals: 3
+            apex_config:
+              chart:
+                height: 200
+            series:
+              - entity: sensor.gestionnaire_d_energie_prix_actuel
+                name: Prix
+                type: area
+                curve: stepline
+                color: '#8e24aa'
+                opacity: 0.3
+                stroke_width: 2
+                float_precision: 4
+
+      - type: grid
+        cards:
+          - type: heading
+            heading: Climat
+            icon: mdi:thermometer
+          - type: custom:apexcharts-card
+            grid_options:
+              columns: full
+            header:
+              show: true
+              title: Températures et chauffage (48 h)
+              show_states: true
+              colorize_states: true
+            graph_span: 48h
+            yaxis:
+              - id: temp
+                decimals: 1
+              - id: puissance
+                opposite: true
+                min: 0
+                decimals: 0
+            apex_config:
+              chart:
+                height: 340
+              legend:
+                show: true
+            all_series_config:
+              curve: smooth
+              stroke_width: 2
+              float_precision: 1
+              group_by:
+                func: avg
+                duration: 15min
+            series:
+              - entity: sensor.ewelink_th01_temperature            # vos entités
+                name: Bas
+                yaxis_id: temp
+                color: '#ef6c00'
+              - entity: sensor.temperature_haut_temperature
+                name: Haut
+                yaxis_id: temp
+                color: '#e53935'
+              - entity: sensor.temperature_exterieure_temperature
+                name: Extérieur
+                yaxis_id: temp
+                color: '#3b82f6'
+              - entity: sensor.zhi_neng_tai_yang_neng_yu_lu_temperature
+                name: Piscine
+                yaxis_id: temp
+                color: '#00acc1'
+              - entity: sensor.puissance_clim_bas
+                name: Clim bas (W)
+                yaxis_id: puissance
+                type: area
+                color: '#5c6bc0'
+                opacity: 0.2
+                stroke_width: 1
+                float_precision: 0
+
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Chauffage et météo
+            icon: mdi:heat-pump
+          - type: custom:apexcharts-card
+            grid_options:
+              columns: full
+            header:
+              show: true
+              title: Chauffage de la clim bas et température extérieure (14 jours)
+            graph_span: 14d
+            span:
+              end: day
+            yaxis:
+              - id: kwh
+                min: 0
+                decimals: 1
+              - id: temp
+                opposite: true
+                decimals: 0
+            apex_config:
+              chart:
+                height: 300
+              legend:
+                show: true
+              plotOptions:
+                bar:
+                  borderRadius: 4
+                  columnWidth: 60%
+            series:
+              - entity: sensor.daikinap85642_climatecontrol_heating_daily_electrical_consumption
+                name: Chauffage (kWh)
+                yaxis_id: kwh
+                type: column
+                color: '#5c6bc0'
+                float_precision: 1
+                statistics:
+                  type: change
+                  period: day
+                  align: start
+              - entity: sensor.temperature_exterieure_temperature
+                name: Extérieur moyenne (°C)
+                yaxis_id: temp
+                type: line
+                curve: smooth
+                color: '#3b82f6'
+                stroke_width: 3
+                float_precision: 1
+                statistics:
+                  type: mean
+                  period: day
+                  align: start
