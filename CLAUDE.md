@@ -36,6 +36,9 @@ adresse `AC:EB:51:C6:88:B3`), reliée à Home Assistant par un ESP32 sous ESPHom
   flash** de l'ESP32 : cela supprime l'appairage avec la télécommande.
 - Si l'appairage se bloque : oublier l'appairage dans le menu Bluetooth de la télécommande,
   couper puis rallumer son Bluetooth, puis accepter le code affiché en quelques secondes.
+- `on_disconnect` ne retente qu'une fois : un `interval` relance la connexion chaque minute.
+  État dans HA : `binary_sensor.relais_madoka_bluetooth_connecte` ; bouton
+  `button.relais_madoka_redemarrer` pour redémarrer le relais.
 - L'ancien équipement `madoka-proxy.yaml` est obsolète : il lui manquait `madoka_base` et
   l'acceptation de l'appairage.
 - Modèle de configuration : [examples/esphome/madoka.yaml](examples/esphome/madoka.yaml).
@@ -44,6 +47,24 @@ Compilation locale sous Windows, en dépannage seulement (ESPHome Builder suffit
 lancer ESPHome depuis PowerShell, pas Git Bash (l'ESP-IDF refuse MSYS), avec des chemins
 courts (`ESPHOME_ESP_IDF_PREFIX=C:\esp\idf`, projet dans `C:\esp\`). Ouvrir le port série
 sans couper DTR/RTS redémarre la carte et interrompt un appairage en cours.
+
+### Module Linky : passage en ESP-NOW (en projet)
+
+- Module actuel : `linky.yaml` dans ESPHome Builder, ESP32-C3 (MAC `88:56:A6:70:70:E4`, IP
+  `192.168.1.169`), TIC en mode standard, contrat HP/HC (index 01 = HC, 02 = HP). Trop loin de
+  la box : Wi-Fi vers −89 dBm, déconnexions fréquentes.
+- Il publie à la fois par l'API ESPHome et par MQTT : d'où les deux appareils « Linky » et les
+  entités `_2` (MQTT) dans HA.
+- Cible : [examples/esphome/linky-tic.yaml](examples/esphome/linky-tic.yaml) (TIC → ESP-NOW,
+  sans Wi-Fi) et [examples/esphome/linky-passerelle.yaml](examples/esphome/linky-passerelle.yaml)
+  (ESP-NOW → HA), via `packet_transport`. La passerelle, `friendly_name: Linky`, reprend les
+  noms d'entités de l'ancien module. Carte prévue pour la passerelle : l'ancien ESP32 (classique) répéteur
+  Wi-Fi du jardin (hors ESPHome, premier flash en USB) ; il doit capter la box directement.
+- `packet_transport` ne transporte que des nombres : tarif (`NTARF`) et registre de statuts
+  (`STGE`, en deux moitiés de 16 bits) sont refaits en texte sur la passerelle.
+- Le module Linky suit le canal Wi-Fi de la box (`canal_wifi`) : le fixer dans la box.
+  Sans Wi-Fi, il se met à jour en USB seulement.
+- Le tableau Énergie utilise les statistiques de l'intégration cloud `linky`, pas ce module.
 
 ### Tesla : relais Bluetooth (appairage en cours)
 

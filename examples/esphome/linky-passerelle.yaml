@@ -1,0 +1,268 @@
+# ESP32 passerelle : reçoit en ESP-NOW les mesures du module Linky (linky-tic.yaml)
+# et les publie dans Home Assistant par le Wi-Fi.
+#
+# Carte prévue : l'ancien ESP32 répéteur Wi-Fi du jardin. Il doit capter la box directement
+# (vers −75 dBm au plus) : c'est lui qui porte le Wi-Fi, l'ESP-NOW ne couvre que le trajet
+# jusqu'au compteur. S'il capte mal, le rapprocher de la maison, pas du compteur.
+# Ne pas utiliser le relais Madoka ni le relais Tesla : le Bluetooth partage la même radio.
+#
+# Les noms reprennent ceux de l'ancien module Linky, avec friendly_name "Linky" : une fois
+# les anciens appareils Linky (ESPHome et MQTT) supprimés de Home Assistant, les entités
+# retrouvent leurs anciens identifiants et leur historique.
+#
+# À adapter :
+#   1. carte : esp32dev pour un ESP32 classique, esp32-c3-devkitm-1 pour un ESP32-C3.
+#   2. secrets.yaml d'ESPHome : linky_espnow_cle, identique sur les deux ESP32.
+# Le premier flash se fait en USB (https://web.esphome.io) : l'ancien firmware de répéteur
+# n'accepte pas les mises à jour d'ESPHome.
+# Le canal Wi-Fi de la box apparaît dans les journaux à la connexion ("Channel: ...") :
+# le reporter dans canal_wifi de linky-tic.yaml.
+
+substitutions:
+  mac_linky: "88:56:A6:70:70:E4"
+  carte: esp32dev
+
+esphome:
+  name: linky-passerelle
+  friendly_name: Linky
+
+esp32:
+  board: ${carte}
+  framework:
+    type: esp-idf
+
+logger:
+
+api:
+
+ota:
+  - platform: esphome
+
+wifi:
+  ap: {}
+  networks:
+    - ssid: !secret wifi_ssid8
+      password: !secret wifi_password8
+    - ssid: !secret wifi_ssid
+      password: !secret wifi_password
+    - ssid: !secret wifi_ssid2
+      password: !secret wifi_password2
+  # Indispensable : en veille Wi-Fi, la radio manque des trames ESP-NOW.
+  power_save_mode: NONE
+
+captive_portal:
+
+web_server:
+  version: 3
+
+espnow:
+  id: espnow_passerelle
+  peers:
+    - ${mac_linky}
+
+packet_transport:
+  - platform: espnow
+    espnow_id: espnow_passerelle
+    peer_address: ${mac_linky}
+    providers:
+      - name: linky-tic
+        encryption: !secret linky_espnow_cle
+
+globals:
+  - id: dernier_message
+    type: uint32_t
+    initial_value: "0"
+
+binary_sensor:
+  # Allumé tant que le module Linky envoie des mesures.
+  - platform: template
+    name: "Status"
+    device_class: connectivity
+    entity_category: diagnostic
+    lambda: |-
+      return id(dernier_message) != 0 && millis() - id(dernier_message) < 60000;
+
+button:
+  - platform: restart
+    name: "Redémarrage passerelle"
+
+sensor:
+  - platform: wifi_signal
+    name: "WiFi Signal"
+    unit_of_measurement: dB
+    device_class: signal_strength
+    accuracy_decimals: 0
+    update_interval: 60s
+
+  # Index d'énergie (kWh). Contrat HP/HC : index 01 = HC, 02 = HP ; les autres restent à 0.
+  - platform: packet_transport
+    provider: linky-tic
+    remote_id: easf01
+    internal: false
+    name: "Tempo Bleu HC"
+    unit_of_measurement: kWh
+    device_class: energy
+    state_class: total_increasing
+    accuracy_decimals: 3
+  - platform: packet_transport
+    provider: linky-tic
+    remote_id: easf02
+    internal: false
+    name: "Tempo Bleu HP"
+    unit_of_measurement: kWh
+    device_class: energy
+    state_class: total_increasing
+    accuracy_decimals: 3
+  - platform: packet_transport
+    provider: linky-tic
+    remote_id: easf03
+    internal: false
+    name: "Tempo Blanc HC"
+    unit_of_measurement: kWh
+    device_class: energy
+    state_class: total_increasing
+    accuracy_decimals: 3
+  - platform: packet_transport
+    provider: linky-tic
+    remote_id: easf04
+    internal: false
+    name: "Tempo Blanc HP"
+    unit_of_measurement: kWh
+    device_class: energy
+    state_class: total_increasing
+    accuracy_decimals: 3
+  - platform: packet_transport
+    provider: linky-tic
+    remote_id: easf05
+    internal: false
+    name: "Tempo Rouge HC"
+    unit_of_measurement: kWh
+    device_class: energy
+    state_class: total_increasing
+    accuracy_decimals: 3
+  - platform: packet_transport
+    provider: linky-tic
+    remote_id: easf06
+    internal: false
+    name: "Tempo Rouge HP"
+    unit_of_measurement: kWh
+    device_class: energy
+    state_class: total_increasing
+    accuracy_decimals: 3
+
+  # Puissance apparente instantanée soutirée (VA).
+  - platform: packet_transport
+    provider: linky-tic
+    remote_id: sinsts
+    id: sinsts
+    internal: false
+    name: "Elec Conso Puiss Apparente Inst Soutirée"
+    unit_of_measurement: VA
+    state_class: measurement
+    device_class: apparent_power
+  - platform: packet_transport
+    provider: linky-tic
+    remote_id: sinsts1
+    id: phase_1
+    internal: false
+    name: "P App Inst Sout 1"
+    unit_of_measurement: VA
+    state_class: measurement
+    device_class: apparent_power
+  - platform: packet_transport
+    provider: linky-tic
+    remote_id: sinsts2
+    id: phase_2
+    internal: false
+    name: "P App Inst Sout 2"
+    unit_of_measurement: VA
+    state_class: measurement
+    device_class: apparent_power
+  - platform: packet_transport
+    provider: linky-tic
+    remote_id: sinsts3
+    id: phase_3
+    internal: false
+    name: "P App Inst Sout 3"
+    unit_of_measurement: VA
+    state_class: measurement
+    device_class: apparent_power
+  - platform: template
+    name: "P App Inst Sout Total"
+    unit_of_measurement: VA
+    device_class: apparent_power
+    state_class: measurement
+    update_interval: 10s
+    lambda: |-
+      return id(phase_1).state + id(phase_2).state + id(phase_3).state;
+
+  # Copies gardées pour les entités de l'ancien module.
+  - platform: copy
+    source_id: sinsts
+    name: "Elec Conso Puiss Apparente Inst Soutirée NRJ"
+  - platform: copy
+    source_id: sinsts
+    name: "00 Elec Conso Puiss Apparente Inst Soutirée"
+  - platform: copy
+    source_id: phase_1
+    name: "01 Elec Conso Puiss Apparente Inst Soutirée"
+  - platform: copy
+    source_id: phase_2
+    name: "02 Elec Conso Puiss Apparente Inst Soutirée"
+  - platform: copy
+    source_id: phase_3
+    name: "03 Elec Conso Puiss Apparente Inst Soutirée"
+
+  # Point de la courbe de charge active soutirée (W).
+  - platform: packet_transport
+    provider: linky-tic
+    remote_id: ccasn
+    internal: false
+    name: "Puiss Conso Active Soutirée"
+    unit_of_measurement: W
+    state_class: measurement
+    device_class: power
+
+  # Valeurs internes, transformées en texte plus bas.
+  - platform: packet_transport
+    provider: linky-tic
+    remote_id: ntarf
+    id: ntarf
+  - platform: packet_transport
+    provider: linky-tic
+    remote_id: stge_haut
+    id: stge_haut
+  - platform: packet_transport
+    provider: linky-tic
+    remote_id: stge_bas
+    id: stge_bas
+  - platform: packet_transport
+    provider: linky-tic
+    remote_id: temps_marche
+    id: temps_marche
+    on_value:
+      then:
+        - lambda: id(dernier_message) = millis();
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: Linky IP Address
+  # Libellés envoyés par le compteur pour les index 01 et 02 du contrat HP/HC.
+  - platform: template
+    name: "Tarif Actuel"
+    icon: mdi:information
+    update_interval: 10s
+    lambda: |-
+      if (isnan(id(ntarf).state)) return {};
+      int index = (int) id(ntarf).state;
+      if (index == 1) return {" HEURE  CREUSE  "};
+      if (index == 2) return {" HEURE  PLEINE  "};
+      return {str_sprintf("Index %d", index)};
+  - platform: template
+    name: "Registre de Statuts"
+    icon: mdi:information
+    update_interval: 10s
+    lambda: |-
+      if (isnan(id(stge_haut).state) || isnan(id(stge_bas).state)) return {};
+      return {str_sprintf("%04X%04X", (unsigned) id(stge_haut).state, (unsigned) id(stge_bas).state)};
