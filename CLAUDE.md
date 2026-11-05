@@ -61,7 +61,7 @@ Tout boîtier demandé se livre en **script Python pour Fusion 360** (API `adsk`
 lance dans Fusion : un dossier `<nom>/` avec `<nom>.py` et `<nom>.manifest`. Le script construit
 chaque pièce par esquisses et extrusions, pour que l'historique reste modifiable dans Fusion, et
 exporte les STL et STEP dans `export/` (ignoré par git). Pas d'OpenSCAD : Fusion 360 ne le lit pas.
-Exemple : [CAMERA_PLACARD/hardware/fusion/boitier_placard/](CAMERA_PLACARD/hardware/fusion/boitier_placard/).
+Exemple : [CAMERA_PLACARD/hardware/fusion/a_camera_placard/](CAMERA_PLACARD/hardware/fusion/a_camera_placard/).
 
 ### Caméra du placard (en projet)
 
