@@ -28,12 +28,9 @@ FACADE_EP = 2.4
 RAYON = 5                    # arrondi des angles
 JEU = 0.3                    # jeu d'emboîtement
 
-# --- Caméra et anneau LED (à vérifier)
+# --- Caméra (à vérifier)
 CAMERA_POS = (-24, 26)       # centre de l'objectif, depuis le centre de la façade
 CAMERA_TROU = 9.5            # l'objectif OV2640 fait 8 mm
-ANNEAU_EXT = 38              # anneau WS2812 12 LED : Ø37 mm extérieur
-ANNEAU_INT = 22              # Ø23 mm intérieur
-DIFFUSEUR = 0.8              # plastique laissé devant les LED
 
 # --- Carte ESP32-S3 (à vérifier)
 ESP = (63.5, 26.5)           # longueur, largeur de la carte
@@ -191,14 +188,13 @@ def construire_facade(p):
     p.anneau(HP_POS, HP_DIAM + 3.2, HP_DIAM + 0.6, 3, FACADE_EP, OP_JOINDRE, "Centrage haut-parleur")
     p.anneau(MICRO_POS, MICRO_MODULE + 2.4, MICRO_MODULE + 0.4, 2, FACADE_EP, OP_JOINDRE, "Logement micro")
 
-    # Deux plots qui portent l'extrémité de la carte ESP32 (côté caméra : l'anneau LED sert d'appui).
-    x_plot = CAMERA_POS[0] + ESP[0] - ESP_CAMERA_BORD - 4
-    plots = [(x_plot, CAMERA_POS[1] + sy * (ESP[1] / 2 - 2)) for sy in (-1, 1)]
+    # Quatre plots qui portent les deux extrémités de la carte ESP32.
+    x_plots = (CAMERA_POS[0] - ESP_CAMERA_BORD + 4, CAMERA_POS[0] + ESP[0] - ESP_CAMERA_BORD - 4)
+    plots = [(x, CAMERA_POS[1] + sy * (ESP[1] / 2 - 2)) for x in x_plots for sy in (-1, 1)]
     p.cylindres(plots, 5, ESP_HAUTEUR, FACADE_EP, OP_JOINDRE, "Plots ESP32", [p.corps])
 
-    # Objectif, logement de l'anneau LED (LED côté façade), évent du micro.
+    # Objectif, évent du micro.
     p.cylindres([CAMERA_POS], CAMERA_TROU, 20, -1, OP_COUPER, "Objectif", [p.corps])
-    p.anneau(CAMERA_POS, ANNEAU_EXT + 0.6, ANNEAU_INT - 0.6, 20, DIFFUSEUR, OP_COUPER, "Logement anneau LED")
     p.cylindres([MICRO_POS], 1.6, FACADE_EP + 2, -1, OP_COUPER, "Évent micro", [p.corps])
 
     # Grille du haut-parleur en quinconce.

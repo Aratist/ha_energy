@@ -1,11 +1,11 @@
-# ESP32-S3 caméra du placard : caméra, micro I2S, haut-parleur I2S, contact de porte, anneau LED.
+# ESP32-S3 caméra du placard : caméra, micro I2S, haut-parleur I2S, contact de porte.
 # Projet complet (câblage, scénario, boîtier, PCB) : CAMERA_PLACARD/CAMERA_PLACARD.md.
 #
 # Carte supposée : ESP32-S3 « CAM » au brochage caméra ESP32-S3-EYE (Freenove ESP32-S3 WROOM CAM,
 # clones « ESP32-S3-CAM N8R8/N16R8 »), capteur OV2640 ou OV5640, PSRAM octale.
 # Autre carte : changer les broches dans substitutions.
 #
-# Ne pas insérer de carte microSD : GPIO38 et GPIO39 sont ses broches sur la carte Freenove.
+# Ne pas insérer de carte microSD : GPIO38 est l'une de ses broches sur la carte Freenove.
 #
 # À renseigner dans le secrets.yaml d'ESPHome : placard_api_key, placard_ota_password.
 # Wi-Fi : point d'accès « Placard Fallback » au premier démarrage, comme le relais Madoka.
@@ -31,10 +31,8 @@ substitutions:
   hp_lrc: GPIO47
   hp_din: GPIO14
 
-  # Contact de porte (ILS) et anneau WS2812.
+  # Contact de porte (ILS).
   porte_pin: GPIO38
-  led_pin: GPIO39
-  led_nombre: "12"
 
 esphome:
   name: camera-placard
@@ -181,33 +179,10 @@ binary_sensor:
       - delayed_on: 50ms
       - delayed_off: 500ms
     on_press:
-      # Éclaire le visage avant la photo prise par Home Assistant.
-      - light.turn_on:
-          id: eclairage
-          brightness: 80%
-          # Blanc neutre.
-          red: 100%
-          green: 90%
-          blue: 75%
       - micro_wake_word.start:
     on_release:
-      - light.turn_off: eclairage
       - micro_wake_word.stop:
       - voice_assistant.stop:
-
-light:
-  - platform: esp32_rmt_led_strip
-    id: eclairage
-    name: Éclairage
-    pin: ${led_pin}
-    num_leds: ${led_nombre}
-    chipset: ws2812
-    channel_colors: GRB
-    default_transition_length: 300ms
-    color_correct: [80%, 80%, 80%]
-    effects:
-      - pulse:
-          name: Écoute
 
 sensor:
   - platform: wifi_signal
