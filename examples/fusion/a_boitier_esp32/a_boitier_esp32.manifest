@@ -1,0 +1,10 @@
+{
+  "autodeskProduct": "Fusion360",
+  "type": "script",
+  "author": "araguin",
+  "description": {
+    "": "Construit un boîtier à clipser, sans vis, pour un ESP32 DevKit (bac et couvercle) et exporte STL et STEP."
+  },
+  "supportedOS": "windows|mac",
+  "editEnabled": true
+}

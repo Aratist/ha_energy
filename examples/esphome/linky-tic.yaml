@@ -13,8 +13,8 @@
 # Ne pas ajouter de bloc wifi: : la recherche de réseau change de canal et coupe l'ESP-NOW.
 
 substitutions:
-  mac_passerelle: "00:00:00:00:00:00"
-  canal_wifi: "1"
+  mac_passerelle: "20:E7:C8:67:BB:A4"
+  canal_wifi: "6"
 
 esphome:
   name: linky-tic

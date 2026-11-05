@@ -48,22 +48,23 @@ lancer ESPHome depuis PowerShell, pas Git Bash (l'ESP-IDF refuse MSYS), avec des
 courts (`ESPHOME_ESP_IDF_PREFIX=C:\esp\idf`, projet dans `C:\esp\`). Ouvrir le port série
 sans couper DTR/RTS redémarre la carte et interrompt un appairage en cours.
 
-### Module Linky : passage en ESP-NOW (en projet)
+### Module Linky : ESP-NOW
 
-- Module actuel : `linky.yaml` dans ESPHome Builder, ESP32-C3 (MAC `88:56:A6:70:70:E4`, IP
-  `192.168.1.169`), TIC en mode standard, contrat HP/HC (index 01 = HC, 02 = HP). Trop loin de
-  la box : Wi-Fi vers −89 dBm, déconnexions fréquentes.
-- Il publie à la fois par l'API ESPHome et par MQTT : d'où les deux appareils « Linky » et les
-  entités `_2` (MQTT) dans HA.
-- Cible : [examples/esphome/linky-tic.yaml](examples/esphome/linky-tic.yaml) (TIC → ESP-NOW,
-  sans Wi-Fi) et [examples/esphome/linky-passerelle.yaml](examples/esphome/linky-passerelle.yaml)
-  (ESP-NOW → HA), via `packet_transport`. La passerelle, `friendly_name: Linky`, reprend les
-  noms d'entités de l'ancien module. Carte prévue pour la passerelle : l'ancien ESP32 (classique) répéteur
-  Wi-Fi du jardin (hors ESPHome, premier flash en USB) ; il doit capter la box directement.
+- Module du compteur : `linky-tic.yaml` dans ESPHome Builder
+  ([modèle](examples/esphome/linky-tic.yaml)), ESP32-C3 (MAC `88:56:A6:70:70:E4`), sans Wi-Fi.
+  TIC en mode standard, contrat HP/HC chez Gaz de Bordeaux (index 01 = HC, 02 = HP ; plus de
+  Tempo). Il envoie ses mesures en ESP-NOW sur le canal 6 ; mises à jour en USB seulement.
+- Passerelle : `linky-passerelle.yaml` ([modèle](examples/esphome/linky-passerelle.yaml)), ancien
+  répéteur ESP32 du jardin (MAC `20:E7:C8:67:BB:A4`, IP `192.168.1.104`), mises à jour par le
+  réseau. Elle ne se connecte qu'à « Lapin » (`wifi_ssid2`, canal 6) : l'ESP-NOW suit le canal du
+  point d'accès, et « Freebox-38A244 » (canal 2) couperait la liaison. Fixer le canal 6 dans la box.
+- Dans HA, un seul appareil ESPHome « Linky » (la passerelle, esp32dev) ; entités `sensor.linky_*`
+  (`index_hc`, `index_hp`, `elec_conso_puiss_apparente_inst_soutiree`…), avec l'historique de
+  l'ancien module. `binary_sensor.linky_status` : allumé tant que le module du compteur émet.
+  L'autre appareil « Linky » (Supervisor) est une application HA, sans rapport.
+- `linky.yaml` (ancienne configuration Wi-Fi + MQTT du C3) est obsolète : ne plus l'installer.
 - `packet_transport` ne transporte que des nombres : tarif (`NTARF`) et registre de statuts
   (`STGE`, en deux moitiés de 16 bits) sont refaits en texte sur la passerelle.
-- Le module Linky suit le canal Wi-Fi de la box (`canal_wifi`) : le fixer dans la box.
-  Sans Wi-Fi, il se met à jour en USB seulement.
 - Le tableau Énergie utilise les statistiques de l'intégration cloud `linky`, pas ce module.
 
 ### Tesla : relais Bluetooth (appairage en cours)
@@ -82,7 +83,8 @@ Tout boîtier demandé se livre en **script Python pour Fusion 360** (API `adsk`
 lance dans Fusion : un dossier `<nom>/` avec `<nom>.py` et `<nom>.manifest`. Le script construit
 chaque pièce par esquisses et extrusions, pour que l'historique reste modifiable dans Fusion, et
 exporte les STL et STEP dans `export/` (ignoré par git). Pas d'OpenSCAD : Fusion 360 ne le lit pas.
-Exemple : [CAMERA_PLACARD/hardware/fusion/a_camera_placard/](CAMERA_PLACARD/hardware/fusion/a_camera_placard/).
+Exemples : [CAMERA_PLACARD/hardware/fusion/a_camera_placard/](CAMERA_PLACARD/hardware/fusion/a_camera_placard/),
+[examples/fusion/a_boitier_esp32/](examples/fusion/a_boitier_esp32/) (ESP32 DevKit, couvercle à clipser sans vis).
 
 ### Caméra du placard (en projet)
 
