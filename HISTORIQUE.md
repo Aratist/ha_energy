@@ -49,13 +49,25 @@ Un répéteur NAT ne convient de toute façon pas à ESPHome : HA ne peut pas jo
 
 **Mis à jour dans HA pour la nouvelle entité.**
 - Tableaux « Aperçu » (défaut), « Maison » (graphique « Consommation instantanée (24 h) »)
-  et « Gestion énergie » (jauge « Consommation instantanée » dans « Maintenant », tuiles
-  Wi-Fi de l'ancien MQTT retirées).
+  et « Gestion énergie » (jauge « Consommation instantanée » dans « Maintenant », à la place
+  de la jauge conditionnelle « Réseau (Linky) » qui faisait doublon ; tuiles Wi-Fi de l'ancien
+  MQTT retirées).
 - `automation.conso_maison_musique`.
 - Aide Modèle « Puissance soutirée réseau » (`sensor.puissance_soutiree_reseau`) : elle lisait
   encore les anciennes entités, d'où « Linky hors ligne » ; la source du surplus est repassée à
   « Linky (mesure réelle) ».
 - `energy_manager` n'utilise pas le Linky (puissance réseau non configurée).
+
+**Suivi de disponibilité de la consommation instantanée** (aides HA, section « Mesure Linky »
+de « Gestion énergie ») :
+- `binary_sensor.linky_consommation_disponible` (aide Modèle) : allumé quand la liaison est
+  active (`binary_sensor.linky_status`) et que la consommation est un nombre.
+- `sensor.linky_disponibilite_24_h` et `sensor.linky_disponibilite_7_jours` (aides
+  Statistiques d'historique, en %) : comptées à partir du 5 novembre 14 h 56, création du
+  capteur, pour ne pas compter comme coupure le temps d'avant. Les fenêtres se remplissent
+  d'ici le 6 novembre (24 h) et le 12 novembre (7 jours).
+- `sensor.linky_coupures_24_h` : nombre de coupures sur 24 h.
+- Graphique « Consommation disponible (24 h) ».
 
 **Diagnostics ajoutés sur la passerelle :** « Réseau Wi-Fi » et « Réseaux visibles »
 (liste des réseaux captés avec leur signal), en plus de « Status » et du signal Wi-Fi.
