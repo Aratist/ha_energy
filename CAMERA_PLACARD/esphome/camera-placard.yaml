@@ -1,5 +1,5 @@
 # ESP32-S3 caméra du placard : caméra, micro I2S, haut-parleur I2S, contact de porte, anneau LED.
-# Projet complet (câblage, scénario, boîtier, PCB) : CAMERA_PLACARD.md à la racine du dépôt.
+# Projet complet (câblage, scénario, boîtier, PCB) : CAMERA_PLACARD/CAMERA_PLACARD.md.
 #
 # Carte supposée : ESP32-S3 « CAM » au brochage caméra ESP32-S3-EYE (Freenove ESP32-S3 WROOM CAM,
 # clones « ESP32-S3-CAM N8R8/N16R8 »), capteur OV2640 ou OV5640, PSRAM octale.
