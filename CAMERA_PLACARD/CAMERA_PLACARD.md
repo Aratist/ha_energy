@@ -14,13 +14,15 @@ s'ouvre entre 7 h et 9 h, il reconnaît la personne :
 
 ```
 Porte ─ contact ILS ─► ESP32-S3 (ESPHome) ──Wi-Fi──► Home Assistant ──► CompreFace (local)
-                        │ allume l'anneau LED          │ photo, reconnaissance
-                        │ caméra, micro, ampli ◄────────┘ météo ou phrase, synthèse vocale
+                        │ caméra, micro, ampli ◄────────┘ photo, reconnaissance,
+                                                          météo ou phrase, synthèse vocale
 ```
 
 - **L'ESP32 détecte et parle, Home Assistant décide.** ESPHome ne sait pas reconnaître un
-  visage. L'ESP32 signale l'ouverture de la porte et allume l'anneau LED pour éclairer le
-  visage. Home Assistant prend alors la photo et la confie à CompreFace.
+  visage. L'ESP32 signale l'ouverture de la porte, Home Assistant prend alors la photo et la
+  confie à CompreFace.
+- **Pas d'éclairage intégré** : la photo compte sur la lumière de la pièce ou du placard.
+  Si le visage est trop sombre, éclairer le placard ou monter le boîtier face à la lumière.
 - **CompreFace** reconnaît les visages en local, sans cloud. Il tourne en module complémentaire
   Home Assistant ou en conteneur Docker. Il demande un processeur avec AVX et environ 2 Go de
   mémoire : sur un Raspberry Pi, le faire tourner sur un autre ordinateur.
@@ -36,11 +38,10 @@ Porte ─ contact ILS ─► ESP32-S3 (ESPHome) ──Wi-Fi──► Home Assist
 | J6 | Ampli I2S MAX98357A | 5 V, 3 W |
 | — | Haut-parleur 4 Ω 3 W, Ø 40 mm | Sur le bornier de l'ampli |
 | J2 | Contact magnétique de porte (ILS, type MC-38) | Fermé quand l'aimant est en face |
-| J3 | Anneau WS2812B 12 LED, Ø 37 mm | Éclaire le visage |
 | J4 | Alimentation 5 V 2 A | Une prise USB-C et un câble suffisent |
-| R1, R2 | 10 kΩ, 330 Ω | Rappel de la porte, protection de la ligne LED |
+| R1 | 10 kΩ | Rappel de la porte |
 | C1, C4 | 100 nF | Antirebond de la porte, découplage du micro |
-| C2, C3 | 470 µF 10 V, 10 µF | Réserve pour l'ampli et les LED |
+| C2, C3 | 470 µF 10 V, 10 µF | Réserve pour l'ampli |
 | — | 4 vis M3 × 10, 4 vis M2,5 × 6 | Boîtier et PCB |
 
 ## Câblage
@@ -49,15 +50,15 @@ Porte ─ contact ILS ─► ESP32-S3 (ESPHome) ──Wi-Fi──► Home Assist
 
 | ESP32-S3 | Vers | Rôle |
 |---|---|---|
-| 5V, GND | Alimentation 5 V, ampli VIN, anneau 5V | Puissance |
+| 5V, GND | Alimentation 5 V, ampli VIN | Puissance |
 | 3V3 | INMP441 VDD, R1 | |
 | GPIO41, GPIO42, GPIO1 | INMP441 SCK, WS, SD | Micro (L/R à la masse) |
 | GPIO21, GPIO47, GPIO14 | MAX98357A BCLK, LRC, DIN | Ampli (GAIN et SD non reliés) |
 | GPIO38 | Contact de porte, autre fil à la masse | Pull-up 10 kΩ, 100 nF |
-| GPIO39 | Anneau WS2812 DIN, via 330 Ω | |
 
 - Les broches GPIO4 à 18 servent à la caméra, 19 et 20 à l'USB, 35 à 37 à la PSRAM octale.
-- GPIO38 et GPIO39 sont aussi celles du lecteur microSD de la carte Freenove : ne pas insérer de carte.
+- GPIO38 est aussi une broche du lecteur microSD de la carte Freenove : ne pas insérer de carte.
+- Le fil 11 du harnais J1 (autrefois GPIO39) reste libre.
 - **Une seule source de 5 V.** Brancher l'USB-C de l'ESP32 pour le premier flash seulement,
   alimentation 5 V débranchée. Les mises à jour suivantes passent par le Wi-Fi.
 
@@ -87,8 +88,8 @@ Porte ─ contact ILS ─► ESP32-S3 (ESPHome) ──Wi-Fi──► Home Assist
    Redémarrer Home Assistant.
 4. **Apprendre les visages** : porte ouverte, lancer 5 à 10 fois
    *Placard : apprendre un visage* pour Alexis, puis pour Marie, en bougeant un peu la tête.
-   Les photos prises par la caméra du placard, avec sa lumière, reconnaissent mieux que des
-   photos de téléphone.
+   Les photos prises par la caméra du placard, sous la lumière habituelle du matin,
+   reconnaissent mieux que des photos de téléphone.
 5. **Tester** : lancer *Placard : qui est là ?* depuis Outils de développement → Actions,
    puis *Placard : météo du jour* et *Placard : compliment pour Marie*. Ajuster `seuil`
    (0,92 par défaut) si Marie est prise pour une inconnue ou l'inverse.
@@ -116,9 +117,8 @@ modifiables dans l'historique. Il exporte aussi les STL et STEP dans `a_camera_p
 
 Deux pièces sans support, intérieur 92 × 104 × 34 mm :
 
-- **Façade**, en PLA blanc, imprimée face avant sur le plateau : trou d'objectif, logement
-  de l'anneau LED derrière 0,8 mm de plastique qui diffuse la lumière, grille du haut-parleur,
-  évent du micro, deux plots pour la carte ESP32.
+- **Façade**, imprimée face avant sur le plateau : trou d'objectif, grille du haut-parleur,
+  évent du micro, quatre plots pour la carte ESP32.
 - **Fond** : entretoises du PCB porteur, deux trous en serrure pour l'accrocher dans le
   placard, passe-fils pour l'alimentation et le contact de porte, aérations.
 
@@ -158,7 +158,7 @@ Le PCB est facultatif : tout peut se câbler en fils Dupont sur une plaque à pa
 - [x] Paquet Home Assistant (YAML et modèles vérifiés hors de Home Assistant)
 - [x] Script Fusion 360 du boîtier (vérifié hors de Fusion seulement, pas encore lancé ni imprimé)
 - [x] Projet KiCad : schéma, placement, réseaux (pas encore ouvert dans KiCad)
-- [ ] Commander le micro, l'ampli, le haut-parleur, l'anneau LED et le contact de porte
+- [ ] Commander le micro, l'ampli, le haut-parleur et le contact de porte
 - [ ] Flasher l'ESP32, régler l'image de la caméra
 - [ ] Installer CompreFace, apprendre les visages, régler le seuil
 - [ ] Mesurer la carte, ajuster et imprimer le boîtier
