@@ -95,3 +95,25 @@ sensor:
   - platform: wifi_signal
     name: "Signal Wi-Fi"
     update_interval: 60s
+
+binary_sensor:
+  - platform: template
+    name: "Bluetooth connecté"
+    device_class: connectivity
+    entity_category: diagnostic
+    lambda: return id(madoka_ble)->connected();
+
+button:
+  - platform: restart
+    name: "Redémarrer"
+
+# on_disconnect ne retente qu'une fois : si cette tentative échoue, on relance chaque minute.
+interval:
+  - interval: 60s
+    then:
+      - if:
+          condition:
+            lambda: return !id(madoka_ble)->connected();
+          then:
+            - logger.log: "Bluetooth Madoka déconnecté : nouvelle tentative"
+            - ble_client.connect: madoka_ble
