@@ -6,9 +6,8 @@
 # jusqu'au compteur. S'il capte mal, le rapprocher de la maison, pas du compteur.
 # Ne pas utiliser le relais Madoka ni le relais Tesla : le Bluetooth partage la même radio.
 #
-# Les noms reprennent ceux de l'ancien module Linky, avec friendly_name "Linky" : une fois
-# les anciens appareils Linky (ESPHome et MQTT) supprimés de Home Assistant, les entités
-# retrouvent leurs anciens identifiants et leur historique.
+# Une seule mesure du compteur est publiée : la consommation instantanée (puissance
+# apparente soutirée, SINSTS). Le reste n'est que diagnostic de la liaison.
 #
 # À adapter :
 #   1. board : esp32dev pour un ESP32 classique, esp32-c3-devkitm-1 pour un ESP32-C3.
@@ -92,113 +91,17 @@ sensor:
     accuracy_decimals: 0
     update_interval: 60s
 
-  # Index d'énergie (kWh), contrat HP/HC : index 01 = heures creuses, 02 = heures pleines.
-  # Le module envoie aussi les index 03 à 06, inutilisés (toujours à 0) : non déclarés ici.
-  - platform: packet_transport
-    provider: linky-tic
-    remote_id: easf01
-    internal: false
-    name: "Index HC"
-    unit_of_measurement: kWh
-    device_class: energy
-    state_class: total_increasing
-    accuracy_decimals: 3
-  - platform: packet_transport
-    provider: linky-tic
-    remote_id: easf02
-    internal: false
-    name: "Index HP"
-    unit_of_measurement: kWh
-    device_class: energy
-    state_class: total_increasing
-    accuracy_decimals: 3
-
-  # Puissance apparente instantanée soutirée (VA).
+  # Puissance apparente instantanée soutirée (VA), toutes phases.
   - platform: packet_transport
     provider: linky-tic
     remote_id: sinsts
-    id: sinsts
     internal: false
-    name: "Elec Conso Puiss Apparente Inst Soutirée"
+    name: "Consommation instantanée"
     unit_of_measurement: VA
     state_class: measurement
     device_class: apparent_power
-  - platform: packet_transport
-    provider: linky-tic
-    remote_id: sinsts1
-    id: phase_1
-    internal: false
-    name: "P App Inst Sout 1"
-    unit_of_measurement: VA
-    state_class: measurement
-    device_class: apparent_power
-  - platform: packet_transport
-    provider: linky-tic
-    remote_id: sinsts2
-    id: phase_2
-    internal: false
-    name: "P App Inst Sout 2"
-    unit_of_measurement: VA
-    state_class: measurement
-    device_class: apparent_power
-  - platform: packet_transport
-    provider: linky-tic
-    remote_id: sinsts3
-    id: phase_3
-    internal: false
-    name: "P App Inst Sout 3"
-    unit_of_measurement: VA
-    state_class: measurement
-    device_class: apparent_power
-  - platform: template
-    name: "P App Inst Sout Total"
-    unit_of_measurement: VA
-    device_class: apparent_power
-    state_class: measurement
-    update_interval: 10s
-    lambda: |-
-      return id(phase_1).state + id(phase_2).state + id(phase_3).state;
 
-  # Copies gardées pour les entités de l'ancien module.
-  - platform: copy
-    source_id: sinsts
-    name: "Elec Conso Puiss Apparente Inst Soutirée NRJ"
-  - platform: copy
-    source_id: sinsts
-    name: "00 Elec Conso Puiss Apparente Inst Soutirée"
-  - platform: copy
-    source_id: phase_1
-    name: "01 Elec Conso Puiss Apparente Inst Soutirée"
-  - platform: copy
-    source_id: phase_2
-    name: "02 Elec Conso Puiss Apparente Inst Soutirée"
-  - platform: copy
-    source_id: phase_3
-    name: "03 Elec Conso Puiss Apparente Inst Soutirée"
-
-  # Point de la courbe de charge active soutirée (W).
-  - platform: packet_transport
-    provider: linky-tic
-    remote_id: ccasn
-    internal: false
-    name: "Puiss Conso Active Soutirée"
-    unit_of_measurement: W
-    state_class: measurement
-    device_class: power
-
-  # Valeurs internes, transformées en texte plus bas.
-  - platform: packet_transport
-    provider: linky-tic
-    remote_id: ntarf
-    id: ntarf
-  - platform: packet_transport
-    provider: linky-tic
-    remote_id: stge_haut
-    id: stge_haut
-  - platform: packet_transport
-    provider: linky-tic
-    remote_id: stge_bas
-    id: stge_bas
+  # Temps de marche du module : chaque réception prouve que la liaison fonctionne.
   - platform: packet_transport
     provider: linky-tic
     remote_id: temps_marche
@@ -217,21 +120,3 @@ text_sensor:
     scan_results:
       name: "Réseaux visibles"
       entity_category: diagnostic
-  # Libellés envoyés par le compteur pour les index 01 et 02 du contrat HP/HC.
-  - platform: template
-    name: "Tarif Actuel"
-    icon: mdi:information
-    update_interval: 10s
-    lambda: |-
-      if (isnan(id(ntarf).state)) return {};
-      int index = (int) id(ntarf).state;
-      if (index == 1) return {" HEURE  CREUSE  "};
-      if (index == 2) return {" HEURE  PLEINE  "};
-      return {str_sprintf("Index %d", index)};
-  - platform: template
-    name: "Registre de Statuts"
-    icon: mdi:information
-    update_interval: 10s
-    lambda: |-
-      if (isnan(id(stge_haut).state) || isnan(id(stge_bas).state)) return {};
-      return {str_sprintf("%04X%04X", (unsigned) id(stge_haut).state, (unsigned) id(stge_bas).state)};

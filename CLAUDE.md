@@ -2,6 +2,8 @@
 
 Conventions du dépôt et commandes de validation : voir [AGENTS.md](AGENTS.md).
 Fonctionnement de l'intégration : voir [README.md](README.md).
+Historique des interventions et tâches en attente : voir [HISTORIQUE.md](HISTORIQUE.md) ;
+le compléter à la fin de chaque série de travaux.
 
 ## Installation de l'utilisateur
 
@@ -58,13 +60,15 @@ sans couper DTR/RTS redémarre la carte et interrompt un appairage en cours.
   répéteur ESP32 du jardin (MAC `20:E7:C8:67:BB:A4`, IP `192.168.1.104`), mises à jour par le
   réseau. Elle ne se connecte qu'à « Lapin » (`wifi_ssid2`, canal 6) : l'ESP-NOW suit le canal du
   point d'accès, et « Freebox-38A244 » (canal 2) couperait la liaison. Fixer le canal 6 dans la box.
-- Dans HA, un seul appareil ESPHome « Linky » (la passerelle, esp32dev) ; entités `sensor.linky_*`
-  (`index_hc`, `index_hp`, `elec_conso_puiss_apparente_inst_soutiree`…), avec l'historique de
-  l'ancien module. `binary_sensor.linky_status` : allumé tant que le module du compteur émet.
-  L'autre appareil « Linky » (Supervisor) est une application HA, sans rapport.
-- `linky.yaml` (ancienne configuration Wi-Fi + MQTT du C3) est obsolète : ne plus l'installer.
-- `packet_transport` ne transporte que des nombres : tarif (`NTARF`) et registre de statuts
-  (`STGE`, en deux moitiés de 16 bits) sont refaits en texte sur la passerelle.
+- Une seule mesure remonte : `sensor.linky_consommation_instantanee` (SINSTS, VA), avec
+  l'historique de l'ancien module. Elle alimente l'aide Modèle `sensor.puissance_soutiree_reseau`
+  (tableau « Gestion énergie », source du surplus) et `automation.conso_maison_musique`.
+  Diagnostics : `binary_sensor.linky_status` (allumé tant que le module du compteur émet),
+  signal et réseau Wi-Fi de la passerelle. L'autre appareil « Linky » (Supervisor) est une
+  application HA, sans rapport.
+- Le module du compteur ouvre son propre point d'accès « Linky TIC » sur le canal 6
+  (mot de passe `linky_tic_ap_mdp`) : serveur web sur http://192.168.4.1, près du compteur.
+- `linky.yaml` (ancienne configuration Wi-Fi + MQTT du C3) est archivé dans ESPHome Builder.
 - Le tableau Énergie utilise les statistiques de l'intégration cloud `linky`, pas ce module.
 
 ### Tesla : relais Bluetooth (appairage en cours)

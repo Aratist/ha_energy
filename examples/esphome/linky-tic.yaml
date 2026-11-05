@@ -1,5 +1,5 @@
 # ESP32-C3 branché sur la prise TIC du compteur Linky (mode standard, 9600 bauds).
-# Il n'utilise pas le Wi-Fi : il envoie ses mesures en ESP-NOW à la passerelle
+# Il ne se connecte à aucun réseau Wi-Fi : il envoie ses mesures en ESP-NOW à la passerelle
 # (linky-passerelle.yaml), qui les publie dans Home Assistant.
 #
 # À adapter avant de flasher :
@@ -7,10 +7,12 @@
 #      ou sur la page de l'appareil dans Home Assistant (Informations de connexion).
 #   2. canal_wifi : le canal Wi-Fi de la box, que la passerelle suit. Le fixer dans la box :
 #      en canal automatique, un changement de canal coupe la liaison.
-#   3. secrets.yaml d'ESPHome : linky_espnow_cle, identique sur les deux ESP32.
+#   3. secrets.yaml d'ESPHome : linky_espnow_cle, identique sur les deux ESP32, et
+#      linky_tic_ap_mdp, mot de passe de son point d'accès.
 #
-# Sans Wi-Fi, pas de mise à jour par le réseau : se flashe en USB.
-# Ne pas ajouter de bloc wifi: : la recherche de réseau change de canal et coupe l'ESP-NOW.
+# Sans connexion à la box, pas de mise à jour par le réseau : se flashe en USB.
+# Ne pas ajouter de networks: au bloc wifi: : la recherche de réseau change de canal et coupe
+# l'ESP-NOW.
 
 substitutions:
   mac_passerelle: "20:E7:C8:67:BB:A4"
@@ -26,6 +28,17 @@ esp32:
     type: esp-idf
 
 logger:
+
+# Point d'accès seul, sur le canal de l'ESP-NOW : jamais de recherche de réseau, qui changerait
+# de canal. Se connecter au réseau « Linky TIC » près du compteur, puis ouvrir http://192.168.4.1.
+wifi:
+  ap:
+    ssid: "Linky TIC"
+    password: !secret linky_tic_ap_mdp
+    channel: ${canal_wifi}
+
+web_server:
+  version: 3
 
 espnow:
   id: espnow_linky
@@ -43,20 +56,7 @@ packet_transport:
     encryption: !secret linky_espnow_cle
     rolling_code_enable: true
     sensors:
-      - easf01
-      - easf02
-      - easf03
-      - easf04
-      - easf05
-      - easf06
       - sinsts
-      - sinsts1
-      - sinsts2
-      - sinsts3
-      - ccasn
-      - ntarf
-      - stge_haut
-      - stge_bas
       - temps_marche
 
 uart:
@@ -72,76 +72,13 @@ teleinfo:
   historical_mode: false
 
 sensor:
-  # Index d'énergie soutirée par période tarifaire (kWh).
-  - platform: teleinfo
-    tag_name: "EASF01"
-    id: easf01
-    filters:
-      - multiply: 0.001
-  - platform: teleinfo
-    tag_name: "EASF02"
-    id: easf02
-    filters:
-      - multiply: 0.001
-  - platform: teleinfo
-    tag_name: "EASF03"
-    id: easf03
-    filters:
-      - multiply: 0.001
-  - platform: teleinfo
-    tag_name: "EASF04"
-    id: easf04
-    filters:
-      - multiply: 0.001
-  - platform: teleinfo
-    tag_name: "EASF05"
-    id: easf05
-    filters:
-      - multiply: 0.001
-  - platform: teleinfo
-    tag_name: "EASF06"
-    id: easf06
-    filters:
-      - multiply: 0.001
-  # Puissance apparente instantanée soutirée, totale puis par phase (VA).
+  # Puissance apparente instantanée soutirée, toutes phases (VA).
   - platform: teleinfo
     tag_name: "SINSTS"
     id: sinsts
-  - platform: teleinfo
-    tag_name: "SINSTS1"
-    id: sinsts1
-  - platform: teleinfo
-    tag_name: "SINSTS2"
-    id: sinsts2
-  - platform: teleinfo
-    tag_name: "SINSTS3"
-    id: sinsts3
-  # Point de la courbe de charge active soutirée (W).
-  - platform: teleinfo
-    tag_name: "CCASN"
-    id: ccasn
-  # Numéro de l'index tarifaire en cours : la passerelle en refait le libellé.
-  - platform: teleinfo
-    tag_name: "NTARF"
-    id: ntarf
+    name: "Consommation instantanée"
+  # Temps de marche : la passerelle s'en sert pour savoir que la liaison fonctionne.
   - platform: uptime
     id: temps_marche
+    name: "Temps de marche"
     update_interval: 10s
-  # Registre de statuts coupé en deux moitiés de 16 bits : un float ne garde pas 32 bits exacts.
-  - platform: template
-    id: stge_haut
-    update_interval: never
-  - platform: template
-    id: stge_bas
-    update_interval: never
-
-text_sensor:
-  - platform: teleinfo
-    tag_name: "STGE"
-    id: stge
-    on_value:
-      then:
-        - lambda: |-
-            uint32_t registre = strtoul(x.c_str(), nullptr, 16);
-            id(stge_haut).publish_state(registre >> 16);
-            id(stge_bas).publish_state(registre & 0xFFFF);
