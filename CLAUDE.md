@@ -66,6 +66,9 @@ sans couper DTR/RTS redémarre la carte et interrompt un appairage en cours.
   Diagnostics : `binary_sensor.linky_status` (allumé tant que le module du compteur émet),
   signal et réseau Wi-Fi de la passerelle. L'autre appareil « Linky » (Supervisor) est une
   application HA, sans rapport.
+- Disponibilité suivie par des aides HA : `binary_sensor.linky_consommation_disponible`,
+  `sensor.linky_disponibilite_24_h`, `sensor.linky_disponibilite_7_jours` (comptées depuis le
+  5 novembre 2026 14 h 56) et `sensor.linky_coupures_24_h`.
 - Le module du compteur ouvre son propre point d'accès « Linky TIC » sur le canal 6
   (mot de passe `linky_tic_ap_mdp`) : serveur web sur http://192.168.4.1, près du compteur.
 - `linky.yaml` (ancienne configuration Wi-Fi + MQTT du C3) est archivé dans ESPHome Builder.
