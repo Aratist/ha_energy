@@ -1,6 +1,6 @@
 """Fusion 360 : construit le boîtier de la caméra du placard (façade et fond).
 
-Projet complet : CAMERA_PLACARD.md à la racine du dépôt.
+Projet complet : CAMERA_PLACARD/CAMERA_PLACARD.md à la racine du dépôt.
 
 Lancer : Utilitaires → Scripts et compléments (Maj+S) → « + » → Script ou complément depuis
 l'appareil → choisir ce dossier boitier_placard → Exécuter.

@@ -45,7 +45,7 @@ Porte ─ contact ILS ─► ESP32-S3 (ESPHome) ──Wi-Fi──► Home Assist
 
 ## Câblage
 
-![Schéma de câblage](hardware/camera-placard/cablage.svg)
+![Schéma de câblage](hardware/cablage.svg)
 
 | ESP32-S3 | Vers | Rôle |
 |---|---|---|
@@ -65,11 +65,11 @@ Porte ─ contact ILS ─► ESP32-S3 (ESPHome) ──Wi-Fi──► Home Assist
 
 | Fichier | Contenu |
 |---|---|
-| [examples/esphome/camera-placard.yaml](examples/esphome/camera-placard.yaml) | Configuration ESPHome |
-| [examples/homeassistant/camera_placard.yaml](examples/homeassistant/camera_placard.yaml) | Paquet Home Assistant : reconnaissance, météo, phrases, automatisation |
-| [hardware/camera-placard/cablage.svg](hardware/camera-placard/cablage.svg) | Schéma de câblage |
-| [hardware/camera-placard/fusion/boitier_placard/](hardware/camera-placard/fusion/boitier_placard/) | Script Fusion 360 du boîtier : façade et fond, export STL et STEP |
-| [hardware/camera-placard/kicad/](hardware/camera-placard/kicad/) | Projet KiCad 8 du PCB porteur |
+| [esphome/camera-placard.yaml](esphome/camera-placard.yaml) | Configuration ESPHome |
+| [homeassistant/camera_placard.yaml](homeassistant/camera_placard.yaml) | Paquet Home Assistant : reconnaissance, météo, phrases, automatisation |
+| [hardware/cablage.svg](hardware/cablage.svg) | Schéma de câblage |
+| [hardware/fusion/boitier_placard/](hardware/fusion/boitier_placard/) | Script Fusion 360 du boîtier : façade et fond, export STL et STEP |
+| [hardware/kicad/](hardware/kicad/) | Projet KiCad 8 du PCB porteur |
 
 ## Mise en service
 
@@ -108,7 +108,7 @@ ne répond pas.
 ## Boîtier imprimé en 3D
 
 Le boîtier se construit dans Fusion 360 avec le script
-[boitier_placard](hardware/camera-placard/fusion/boitier_placard/boitier_placard.py) :
+[boitier_placard](hardware/fusion/boitier_placard/boitier_placard.py) :
 *Utilitaires → Scripts et compléments* (Maj+S), bouton « + », *Script ou complément depuis
 l'appareil*, choisir le dossier `boitier_placard`, puis *Exécuter*. Le script crée un nouveau
 document avec les composants « Façade » et « Fond », chacun fait d'esquisses et d'extrusions

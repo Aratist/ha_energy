@@ -1,4 +1,4 @@
-# Paquet Home Assistant de la caméra du placard. Projet complet : CAMERA_PLACARD.md.
+# Paquet Home Assistant de la caméra du placard. Projet complet : CAMERA_PLACARD/CAMERA_PLACARD.md.
 #
 # Installation :
 #   1. configuration.yaml :  homeassistant: { packages: !include_dir_named packages }
