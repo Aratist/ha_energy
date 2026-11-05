@@ -68,7 +68,7 @@ Porte ─ contact ILS ─► ESP32-S3 (ESPHome) ──Wi-Fi──► Home Assist
 | [esphome/camera-placard.yaml](esphome/camera-placard.yaml) | Configuration ESPHome |
 | [homeassistant/camera_placard.yaml](homeassistant/camera_placard.yaml) | Paquet Home Assistant : reconnaissance, météo, phrases, automatisation |
 | [hardware/cablage.svg](hardware/cablage.svg) | Schéma de câblage |
-| [hardware/fusion/boitier_placard/](hardware/fusion/boitier_placard/) | Script Fusion 360 du boîtier : façade et fond, export STL et STEP |
+| [hardware/fusion/a_camera_placard/](hardware/fusion/a_camera_placard/) | Script Fusion 360 du boîtier : façade et fond, export STL et STEP |
 | [hardware/kicad/](hardware/kicad/) | Projet KiCad 8 du PCB porteur |
 
 ## Mise en service
@@ -108,11 +108,11 @@ ne répond pas.
 ## Boîtier imprimé en 3D
 
 Le boîtier se construit dans Fusion 360 avec le script
-[boitier_placard](hardware/fusion/boitier_placard/boitier_placard.py) :
+[a_camera_placard](hardware/fusion/a_camera_placard/a_camera_placard.py) :
 *Utilitaires → Scripts et compléments* (Maj+S), bouton « + », *Script ou complément depuis
-l'appareil*, choisir le dossier `boitier_placard`, puis *Exécuter*. Le script crée un nouveau
+l'appareil*, choisir le dossier `a_camera_placard`, puis *Exécuter*. Le script crée un nouveau
 document avec les composants « Façade » et « Fond », chacun fait d'esquisses et d'extrusions
-modifiables dans l'historique. Il exporte aussi les STL et STEP dans `boitier_placard/export/`.
+modifiables dans l'historique. Il exporte aussi les STL et STEP dans `a_camera_placard/export/`.
 
 Deux pièces sans support, intérieur 92 × 104 × 34 mm :
 

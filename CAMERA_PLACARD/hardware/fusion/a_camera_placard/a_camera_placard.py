@@ -3,7 +3,7 @@
 Projet complet : CAMERA_PLACARD/CAMERA_PLACARD.md à la racine du dépôt.
 
 Lancer : Utilitaires → Scripts et compléments (Maj+S) → « + » → Script ou complément depuis
-l'appareil → choisir ce dossier boitier_placard → Exécuter.
+l'appareil → choisir ce dossier a_camera_placard → Exécuter.
 
 Le script crée un nouveau document avec deux composants, « Façade » et « Fond ». Chaque forme
 est une esquisse suivie d'une extrusion dans l'historique : on peut tout modifier ensuite dans
