@@ -3,6 +3,18 @@
 Conventions du dépôt et commandes de validation : voir [AGENTS.md](AGENTS.md).
 Fonctionnement de l'intégration : voir [README.md](README.md).
 
+## Préférences de communication
+
+- Répondre en français, de façon concise : l'essentiel, sans récapitulatifs ni répétitions.
+- Tableaux quand c'est utile ; poser une question seulement si la réponse change l'action.
+
+## Hypothèses retenues
+
+- La maison consomme 400 W en permanence (talon, `baseline_power`).
+- Contrat HP/HC, heures creuses 22h-6h, tarif identique toute l'année (pas de Tempo).
+- Tesla BLE actif seulement quand la voiture doit être chargée : `unavailable` est normal.
+- Linky : cos φ = 1 (W = VA).
+
 ## Installation de l'utilisateur
 
 Home Assistant : `https://ha.controlemoi.com`, avec l'extension ESPHome Device Builder.
