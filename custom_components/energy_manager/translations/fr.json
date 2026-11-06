@@ -7,6 +7,7 @@
         "data": {
           "grid_power": "Puissance réseau (compteur, Linky, pince…)",
           "grid_invert": "Inverser le signe de la puissance réseau",
+          "grid_import_only": "Le compteur ne mesure que le soutirage (pas d'injection)",
           "solar_power": "Production solaire",
           "house_power": "Consommation de la maison",
           "baseline_power": "Talon de consommation (estimation)"
@@ -129,6 +130,7 @@
         "data": {
           "grid_power": "Puissance réseau (compteur, Linky, pince…)",
           "grid_invert": "Inverser le signe de la puissance réseau",
+          "grid_import_only": "Le compteur ne mesure que le soutirage (pas d'injection)",
           "solar_power": "Production solaire",
           "house_power": "Consommation de la maison",
           "baseline_power": "Talon de consommation (estimation)"

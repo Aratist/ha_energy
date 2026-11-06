@@ -209,3 +209,20 @@ def test_clamp():
     assert engine.clamp(17, 19, 23) == 19
     assert engine.clamp(25, 19, 23) == 23
     assert engine.clamp(21, 19, 23) == 21
+
+
+# --- Compteur « soutirage seul » (Linky sans injection) ----------------------
+
+
+def test_import_only_real_import_is_kept():
+    assert engine.import_only_grid_power(450, 400, 0, 50) == (450, False)
+
+
+def test_import_only_zero_import_estimates_injection():
+    # Pas de soutirage, 2000 W de PV, 600 W de conso estimée : injection estimée.
+    assert engine.import_only_grid_power(0, 600, 2000, 50) == (-1400, True)
+
+
+def test_import_only_never_estimates_import():
+    # Le compteur dit « pas de soutirage » : l'estimation ne peut pas être > 0.
+    assert engine.import_only_grid_power(10, 600, 100, 50) == (0.0, True)

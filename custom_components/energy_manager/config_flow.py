@@ -38,6 +38,7 @@ from .const import (
     CONF_CLIMATE,
     CONF_CLIMATE_POWER,
     CONF_CLIMATE_POWER_SENSOR,
+    CONF_GRID_IMPORT_ONLY,
     CONF_GRID_INVERT,
     CONF_GRID_POWER,
     CONF_HOUSE_POWER,
@@ -99,6 +100,7 @@ SOURCES_SCHEMA = vol.Schema(
     {
         vol.Optional(CONF_GRID_POWER): POWER_SENSOR,
         vol.Optional(CONF_GRID_INVERT): BooleanSelector(),
+        vol.Optional(CONF_GRID_IMPORT_ONLY): BooleanSelector(),
         vol.Optional(CONF_SOLAR_POWER): POWER_SENSOR,
         vol.Optional(CONF_HOUSE_POWER): POWER_SENSOR,
         vol.Required(CONF_BASELINE): _number(0, 3000, 10, "W"),

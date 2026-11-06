@@ -17,6 +17,9 @@ AUTO_MASTER = "master"
 # Sources de mesure
 CONF_GRID_POWER = "grid_power"
 CONF_GRID_INVERT = "grid_invert"
+# Compteur qui ne mesure que le soutirage (Linky sans injection) : l'injection
+# est alors estimée à partir de la production et de la consommation.
+CONF_GRID_IMPORT_ONLY = "grid_import_only"
 CONF_SOLAR_POWER = "solar_power"
 CONF_HOUSE_POWER = "house_power"
 CONF_BASELINE = "baseline_power"  # talon de la maison pour l'estimation
@@ -84,7 +87,8 @@ CONF_MIN_OFF = "min_off_minutes"
 
 DEFAULTS = {
     CONF_GRID_INVERT: False,
-    CONF_BASELINE: 250,
+    CONF_GRID_IMPORT_ONLY: False,
+    CONF_BASELINE: 400,
     CONF_APPLIANCES: [],
     CONF_WH_NOMINAL: 2000,
     CONF_WH_MIN_HOURS: 3,
@@ -93,8 +97,8 @@ DEFAULTS = {
     CONF_POOL_MIN_HOURS: 2,
     CONF_POOL_MAX_HOURS: 14,
     CONF_CLIMATE_POWER: 1000,
-    CONF_PRICE_PEAK: 0.2146,
-    CONF_PRICE_OFFPEAK: 0.1696,
+    CONF_PRICE_PEAK: 0.175176,
+    CONF_PRICE_OFFPEAK: 0.132024,
     CONF_PRICE_EXPORT: 0.0,
     CONF_OFFPEAK_ENABLED: True,
     CONF_OFFPEAK_START: "22:00:00",
@@ -108,6 +112,10 @@ DEFAULTS = {
     CONF_MIN_ON: 10,
     CONF_MIN_OFF: 5,
 }
+
+# Compteur « soutirage seul » : en dessous de ce seuil, on considère qu'il n'y a
+# pas de soutirage et l'injection éventuelle est estimée.
+GRID_IMPORT_THRESHOLD = 50
 
 # Détection « ballon chaud » : puissance mesurée sous ce seuil pendant ce délai
 WH_IDLE_POWER = 50
