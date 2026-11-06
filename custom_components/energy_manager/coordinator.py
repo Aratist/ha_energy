@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, time, timedelta
+from datetime import date, datetime, time, timedelta
 import logging
 from typing import Any
 
@@ -24,8 +24,10 @@ from homeassistant.const import (
     ATTR_UNIT_OF_MEASUREMENT,
     SERVICE_TURN_OFF,
     SERVICE_TURN_ON,
+    STATE_IDLE,
     STATE_OFF,
     STATE_ON,
+    STATE_STANDBY,
     STATE_UNAVAILABLE,
     STATE_UNKNOWN,
     UnitOfPower,
@@ -93,6 +95,7 @@ from .const import (
 from .engine import (
     CLIMATE_KEEP_FRACTION,
     CLIMATE_START_FRACTION,
+    PERIODS,
     PRIORITY,
     REASON_COMFORT,
     REASON_INACTIVE,
@@ -110,6 +113,7 @@ from .engine import (
     decide,
     estimate_consumption,
     in_window,
+    period_start,
     pool_required_hours,
     season_for,
 )
@@ -145,7 +149,10 @@ class EnergyData:
     decisions: dict[str, Decision] = field(default_factory=dict)
     runtime_s: dict[str, float] = field(default_factory=dict)
     required_s: dict[str, float] = field(default_factory=dict)
+    cycle_start: datetime | None = None  # début du cycle journalier
     day: dict[str, float] = field(default_factory=dict)
+    savings: dict[str, float] = field(default_factory=dict)  # € par période
+    savings_start: dict[str, str] = field(default_factory=dict)  # début (ISO)
 
 
 class EnergyManagerCoordinator(DataUpdateCoordinator[EnergyData]):
@@ -170,6 +177,10 @@ class EnergyManagerCoordinator(DataUpdateCoordinator[EnergyData]):
             "runtime": {},
             "done": {},
             "day": dict.fromkeys(DAY_KEYS, 0.0),
+            # Économie solaire cumulée par semaine / mois / année civile, et
+            # date de début (ISO) de la période en cours pour chacune.
+            "savings": dict.fromkeys(PERIODS, 0.0),
+            "savings_start": dict.fromkeys(PERIODS),
             "climate_base": None,
             "climate_target": None,
             "season": SEASON_AUTO,
@@ -193,7 +204,11 @@ class EnergyManagerCoordinator(DataUpdateCoordinator[EnergyData]):
         if (stored := await self._store.async_load()) is not None:
             self._state["auto"].update(stored.pop("auto", {}))
             self._state["day"].update(stored.pop("day", {}))
+            self._state["savings"].update(stored.pop("savings", {}))
+            self._state["savings_start"].update(stored.pop("savings_start", {}))
             self._state.update(stored)
+        # Stockage ancien ou période révolue pendant l'arrêt : on repart de 0.
+        self._roll_savings(dt_util.now().date())
 
     @property
     def auto(self) -> dict[str, bool]:
@@ -241,7 +256,7 @@ class EnergyManagerCoordinator(DataUpdateCoordinator[EnergyData]):
 
         elapsed = 0.0
         if self._last_tick is not None:
-            elapsed = min((now - self._last_tick).total_seconds(), 300.0)
+            elapsed = min(max(0.0, _seconds_between(self._last_tick, now)), 300.0)
         self._last_tick = now
 
         tariff = self._tariff()
@@ -250,6 +265,7 @@ class EnergyManagerCoordinator(DataUpdateCoordinator[EnergyData]):
             and in_window(now.time(), offpeak_start, offpeak_end),
             rentable_fraction=tariff.rentable_fraction,
             season=season_for(now.month, self.season_mode),
+            cycle_start=cycle_start,
             day=dict(self._state["day"]),
         )
         data.price = tariff.price(data.in_offpeak)
@@ -276,7 +292,7 @@ class EnergyManagerCoordinator(DataUpdateCoordinator[EnergyData]):
         data.appliances_power = sum(data.appliance_power.values()) + managed_consumption
 
         if conf.get(CONF_SOLAR_POWER):
-            data.production = self._read_power(conf[CONF_SOLAR_POWER]) or 0.0
+            data.production = self._read_power(conf[CONF_SOLAR_POWER])
         data.consumption = self._read_power(conf.get(CONF_HOUSE_POWER))
         if data.consumption is None:
             data.consumption = estimate_consumption(conf[CONF_BASELINE], appliances)
@@ -307,7 +323,7 @@ class EnergyManagerCoordinator(DataUpdateCoordinator[EnergyData]):
                 managed,
                 data.available_power,
                 in_offpeak=data.in_offpeak,
-                seconds_left_in_cycle=(cycle_end - now).total_seconds(),
+                seconds_left_in_cycle=_seconds_between(now, cycle_end),
                 rentable_fraction=tariff.rentable_fraction,
                 margin=conf[CONF_MARGIN],
                 max_import=conf[CONF_MAX_IMPORT],
@@ -322,10 +338,14 @@ class EnergyManagerCoordinator(DataUpdateCoordinator[EnergyData]):
         await self._enforce_comfort(data, LOAD_CLIMATE in {l.key for l in managed})
 
         # --- Bilan du jour -----------------------------------------------
-        self._account(elapsed, data, tariff)
+        self._account(now, elapsed, data, tariff)
         data.day = dict(self._state["day"])
+        data.savings = dict(self._state["savings"])
+        data.savings_start = dict(self._state["savings_start"])
 
-        self._store.async_delay_save(lambda: self._state, 30)
+        # Délai plus court que l'intervalle de mise à jour : chaque appel annule
+        # le minuteur précédent, un délai de 30 s ne s'écoulerait jamais.
+        self._store.async_delay_save(lambda: self._state, 10)
         return data
 
     # --- Mesures -----------------------------------------------------------
@@ -386,7 +406,9 @@ class EnergyManagerCoordinator(DataUpdateCoordinator[EnergyData]):
             if (action := state.attributes.get(ATTR_HVAC_ACTION)) is not None:
                 return action in ACTIVE_ACTIONS
             return state.state != STATE_OFF
-        return state.state == STATE_ON
+        # Lecteur en lecture ou en pause, chauffe-eau en mode eco/electric… :
+        # tout état autre qu'éteint ou en veille consomme.
+        return state.state not in (STATE_OFF, STATE_STANDBY, STATE_IDLE)
 
     def _appliances(self) -> list[Appliance]:
         result = []
@@ -410,7 +432,7 @@ class EnergyManagerCoordinator(DataUpdateCoordinator[EnergyData]):
             self._observed[key] = (is_on, now - timedelta(days=1))
         elif previous[0] != is_on:
             self._observed[key] = (is_on, now)
-        return (now - self._observed[key][1]).total_seconds()
+        return _seconds_between(self._observed[key][1], now)
 
     def _switch_load(
         self, key: str, now: datetime, nominal: float, power_conf: str
@@ -452,13 +474,16 @@ class EnergyManagerCoordinator(DataUpdateCoordinator[EnergyData]):
         # Alimenté mais ne consomme plus : le thermostat a coupé, ballon chaud.
         if load.is_on and measured is not None and measured <= WH_IDLE_POWER:
             self._wh_idle_since = self._wh_idle_since or now
-            if now - self._wh_idle_since >= WH_IDLE_DELAY:
+            if _seconds_between(self._wh_idle_since, now) >= WH_IDLE_DELAY.total_seconds():
                 self._state["done"][LOAD_WATER_HEATER] = True
         else:
             self._wh_idle_since = None
 
         required = self.conf[CONF_WH_MIN_HOURS] * 3600
-        load.done = self._state["done"].get(LOAD_WATER_HEATER, False)
+        # En heures creuses, un ballon jugé chaud a pu être vidé depuis (douches
+        # du soir) : on laisse le thermostat décider, il ne chauffe pas pour rien.
+        done = self._state["done"].get(LOAD_WATER_HEATER, False)
+        load.done = done and not data.in_offpeak
         load.remaining_s = 0.0 if load.done else max(0.0, required - runtime)
         data.runtime_s[LOAD_WATER_HEATER] = runtime
         data.required_s[LOAD_WATER_HEATER] = required
@@ -621,7 +646,10 @@ class EnergyManagerCoordinator(DataUpdateCoordinator[EnergyData]):
                 state.attributes.get(ATTR_MAX_TEMP, target),
             )
             if target == base:
-                return False
+                # Consigne déjà au bout de la bande : rien à envoyer, mais le
+                # boost est effectif (la clim consomme sur le solaire).
+                self._state.update(climate_base=base, climate_target=target)
+                return True
         else:
             base, target = self._state["climate_base"], None
             if base is None:
@@ -642,20 +670,48 @@ class EnergyManagerCoordinator(DataUpdateCoordinator[EnergyData]):
 
     # --- Bilan -------------------------------------------------------------
 
-    def _account(self, elapsed: float, data: EnergyData, tariff: Tariff) -> None:
+    def _roll_savings(self, today: date) -> None:
+        """Remet à zéro les cumuls dont la période calendaire est révolue.
+
+        La comparaison porte sur la date de début stockée : un changement de
+        période survenu pendant un arrêt de Home Assistant est donc rattrapé
+        au premier passage.
+        """
+        for period in PERIODS:
+            start = period_start(today, period).isoformat()
+            if self._state["savings_start"][period] != start:
+                self._state["savings"][period] = 0.0
+                self._state["savings_start"][period] = start
+
+    def _account(
+        self, now: datetime, elapsed: float, data: EnergyData, tariff: Tariff
+    ) -> None:
         """Cumule import/export/autoconsommation et leur valeur en €."""
+        self._roll_savings(now.date())
         if elapsed <= 0 or data.grid_power is None or data.consumption is None:
             return
         hours = elapsed / 3600
         day = self._state["day"]
         imported = max(0.0, data.grid_power) * hours / 1000
         exported = max(0.0, -data.grid_power) * hours / 1000
-        produced = (data.production or 0.0) * hours / 1000
         day["import_kwh"] += imported
         day["export_kwh"] += exported
-        day["self_kwh"] += max(0.0, produced - exported)
         day["cost"] += imported * data.price - exported * tariff.export
-        day["savings"] += max(0.0, produced - exported) * data.price
+        if data.production is None:
+            return  # production inconnue : autoconsommation et économie aussi
+        produced = data.production * hours / 1000
+        day["self_kwh"] += max(0.0, produced - exported)
+        saved = max(0.0, produced - exported) * data.price
+        day["savings"] += saved
+        for period in PERIODS:
+            self._state["savings"][period] += saved
+
+
+def _seconds_between(start: datetime, end: datetime) -> float:
+    """Durée réelle entre deux instants. Deux datetimes du même fuseau se
+    soustraient en heure murale : au changement d'heure le résultat serait
+    faux d'une heure, voire négatif."""
+    return end.timestamp() - start.timestamp()
 
 
 def _parse_time(value: str) -> time:

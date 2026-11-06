@@ -193,6 +193,8 @@ def _validate_appliance(user_input: dict[str, Any]) -> dict[str, str]:
 def _validate_tariff(user_input: dict[str, Any]) -> dict[str, str]:
     if user_input[CONF_PRICE_OFFPEAK] > user_input[CONF_PRICE_PEAK]:
         return {CONF_PRICE_OFFPEAK: "offpeak_above_peak"}
+    if user_input.get(CONF_PRICE_EXPORT, 0) >= user_input[CONF_PRICE_PEAK]:
+        return {CONF_PRICE_EXPORT: "export_above_peak"}
     return {}
 
 

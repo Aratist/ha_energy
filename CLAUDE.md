@@ -2,6 +2,8 @@
 
 Conventions du dépôt et commandes de validation : voir [AGENTS.md](AGENTS.md).
 Fonctionnement de l'intégration : voir [README.md](README.md).
+Historique des interventions et tâches en attente : voir [HISTORIQUE.md](HISTORIQUE.md) ;
+le compléter à la fin de chaque série de travaux.
 
 ## Installation de l'utilisateur
 
@@ -36,14 +38,58 @@ adresse `AC:EB:51:C6:88:B3`), reliée à Home Assistant par un ESP32 sous ESPHom
   flash** de l'ESP32 : cela supprime l'appairage avec la télécommande.
 - Si l'appairage se bloque : oublier l'appairage dans le menu Bluetooth de la télécommande,
   couper puis rallumer son Bluetooth, puis accepter le code affiché en quelques secondes.
+- `on_disconnect` ne retente qu'une fois : un `interval` relance la connexion chaque minute.
+  État dans HA : `binary_sensor.relais_madoka_bluetooth_connecte` ; bouton
+  `button.relais_madoka_redemarrer` pour redémarrer le relais.
 - L'ancien équipement `madoka-proxy.yaml` est obsolète : il lui manquait `madoka_base` et
   l'acceptation de l'appairage.
-- Modèle de configuration : [examples/esphome/madoka.yaml](examples/esphome/madoka.yaml).
+- Modèle de configuration : [projets-3d-esp32/madoka/madoka.yaml](https://github.com/Aratist/projets-3d-esp32/blob/main/madoka/madoka.yaml).
 
 Compilation locale sous Windows, en dépannage seulement (ESPHome Builder suffit) :
 lancer ESPHome depuis PowerShell, pas Git Bash (l'ESP-IDF refuse MSYS), avec des chemins
 courts (`ESPHOME_ESP_IDF_PREFIX=C:\esp\idf`, projet dans `C:\esp\`). Ouvrir le port série
 sans couper DTR/RTS redémarre la carte et interrompt un appairage en cours.
+
+### Module Linky : ESP-NOW
+
+- Module du compteur : `linky-tic.yaml` dans ESPHome Builder
+  ([modèle](https://github.com/Aratist/projets-3d-esp32/blob/main/linky/linky-tic.yaml)), ESP32-C3 (MAC `88:56:A6:70:70:E4`), sans Wi-Fi.
+  TIC en mode standard, contrat HP/HC chez Gaz de Bordeaux (index 01 = HC, 02 = HP ; plus de
+  Tempo). Il envoie ses mesures en ESP-NOW sur le canal 6 ; mises à jour en USB seulement.
+- Passerelle : `linky-passerelle.yaml` ([modèle](https://github.com/Aratist/projets-3d-esp32/blob/main/linky/linky-passerelle.yaml)), ancien
+  répéteur ESP32 du jardin (MAC `20:E7:C8:67:BB:A4`, IP `192.168.1.104`), mises à jour par le
+  réseau. Elle ne se connecte qu'à « Lapin » (`wifi_ssid2`, canal 6) : l'ESP-NOW suit le canal du
+  point d'accès, et « Freebox-38A244 » (canal 2) couperait la liaison. Fixer le canal 6 dans la box.
+- Une seule mesure remonte : `sensor.linky_consommation_instantanee` (SINSTS, VA), avec
+  l'historique de l'ancien module. Elle alimente l'aide Modèle `sensor.puissance_soutiree_reseau`
+  (tableau « Gestion énergie », source du surplus) et `automation.conso_maison_musique`.
+  Diagnostics : `binary_sensor.linky_status` (allumé tant que le module du compteur émet),
+  signal et réseau Wi-Fi de la passerelle. L'autre appareil « Linky » (Supervisor) est une
+  application HA, sans rapport.
+- Disponibilité suivie par des aides HA : `binary_sensor.linky_consommation_disponible`,
+  `sensor.linky_disponibilite_24_h`, `sensor.linky_disponibilite_7_jours` (comptées depuis le
+  5 novembre 2026 14 h 56) et `sensor.linky_coupures_24_h`.
+- Le module du compteur ouvre son propre point d'accès « Linky TIC » sur le canal 6
+  (mot de passe `linky_tic_ap_mdp`) : serveur web sur http://192.168.4.1, près du compteur.
+- `linky.yaml` (ancienne configuration Wi-Fi + MQTT du C3) est archivé dans ESPHome Builder.
+- Le tableau Énergie utilise les statistiques de l'intégration cloud `linky`, pas ce module.
+
+### Tesla : relais Bluetooth (appairage en cours)
+
+- ESP32 dédié, distinct du relais Madoka, sous ESPHome avec le fork `PedroKTFC/esphome-tesla-ble` (v2026.10.0), entités en français.
+  Modèle : [projets-3d-esp32/tesla-ble/tesla-ble.yaml](https://github.com/Aratist/projets-3d-esp32/blob/main/tesla-ble/tesla-ble.yaml).
+- L'appairage se lance par le bouton « Appairage clé BLE » (section Diagnostic de l'appareil),
+  puis la carte-clé sur la console : la voiture ne propose rien dans son menu Bluetooth.
+- `packages/evcc.yml` ne sert qu'avec EVCC : la recharge se pilote avec les entités de `client.yml`.
+- La recharge n'est pas encore pilotée par `energy_manager` : l'ajouter une fois l'appairage réussi.
+  Comparaison des solutions de pilotage gratuites : [TESLA_Module.md](TESLA_Module.md).
+
+### Boîtiers 3D et caméra du placard
+
+Déplacés le 6 novembre 2026 dans le dépôt privé
+[Aratist/projets-3d-esp32](https://github.com/Aratist/projets-3d-esp32), avec les programmes
+ESPHome des relais (Linky, Madoka, Tesla) : ce dépôt ne garde que la gestion de l'énergie.
+Les modèles ESPHome cités plus haut y sont, dans `linky/`, `madoka/` et `tesla-ble/`.
 
 ### Tableau de bord « Analyse énergie »
 
@@ -54,3 +100,10 @@ sans couper DTR/RTS redémarre la carte et interrompt un appairage en cours.
 - Une entité `climate` s'y affiche en courbe de température. Chaque clim passe donc par un
   capteur binaire (aide Modèle) : `binary_sensor.clim_bas_allumee` et
   `binary_sensor.clim_haut_allumee`, allumés quand la clim n'est pas `off`.
+- Onglets « Aujourd'hui », « Solaire », « Appareils », « Économies & climat » : graphiques
+  `custom:apexcharts-card` (HACS). Pour modifier le tableau de bord, éditer
+  `examples/analyse.yaml`, puis l'envoyer dans HA (`lovelace/config/save`).
+- Les compteurs « du jour » de `energy_manager` (soutirage, coût, économie, chauffe, filtration…)
+  repartent de zéro **à 6 h**, pas à minuit. Graphique par jour tiré de l'historique :
+  `group_by: max 1d` avec `span: {end: day, offset: +6h}`. Depuis les statistiques
+  long terme, prendre la variation (`change`), jamais `max` ni `state`.
