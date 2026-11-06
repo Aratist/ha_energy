@@ -43,7 +43,7 @@ adresse `AC:EB:51:C6:88:B3`), reliée à Home Assistant par un ESP32 sous ESPHom
   `button.relais_madoka_redemarrer` pour redémarrer le relais.
 - L'ancien équipement `madoka-proxy.yaml` est obsolète : il lui manquait `madoka_base` et
   l'acceptation de l'appairage.
-- Modèle de configuration : [examples/esphome/madoka.yaml](examples/esphome/madoka.yaml).
+- Modèle de configuration : [projets-3d-esp32/madoka/madoka.yaml](https://github.com/Aratist/projets-3d-esp32/blob/main/madoka/madoka.yaml).
 
 Compilation locale sous Windows, en dépannage seulement (ESPHome Builder suffit) :
 lancer ESPHome depuis PowerShell, pas Git Bash (l'ESP-IDF refuse MSYS), avec des chemins
@@ -53,10 +53,10 @@ sans couper DTR/RTS redémarre la carte et interrompt un appairage en cours.
 ### Module Linky : ESP-NOW
 
 - Module du compteur : `linky-tic.yaml` dans ESPHome Builder
-  ([modèle](examples/esphome/linky-tic.yaml)), ESP32-C3 (MAC `88:56:A6:70:70:E4`), sans Wi-Fi.
+  ([modèle](https://github.com/Aratist/projets-3d-esp32/blob/main/linky/linky-tic.yaml)), ESP32-C3 (MAC `88:56:A6:70:70:E4`), sans Wi-Fi.
   TIC en mode standard, contrat HP/HC chez Gaz de Bordeaux (index 01 = HC, 02 = HP ; plus de
   Tempo). Il envoie ses mesures en ESP-NOW sur le canal 6 ; mises à jour en USB seulement.
-- Passerelle : `linky-passerelle.yaml` ([modèle](examples/esphome/linky-passerelle.yaml)), ancien
+- Passerelle : `linky-passerelle.yaml` ([modèle](https://github.com/Aratist/projets-3d-esp32/blob/main/linky/linky-passerelle.yaml)), ancien
   répéteur ESP32 du jardin (MAC `20:E7:C8:67:BB:A4`, IP `192.168.1.104`), mises à jour par le
   réseau. Elle ne se connecte qu'à « Lapin » (`wifi_ssid2`, canal 6) : l'ESP-NOW suit le canal du
   point d'accès, et « Freebox-38A244 » (canal 2) couperait la liaison. Fixer le canal 6 dans la box.
@@ -77,26 +77,19 @@ sans couper DTR/RTS redémarre la carte et interrompt un appairage en cours.
 ### Tesla : relais Bluetooth (appairage en cours)
 
 - ESP32 dédié, distinct du relais Madoka, sous ESPHome avec le fork `PedroKTFC/esphome-tesla-ble` (v2026.10.0), entités en français.
-  Modèle : [examples/esphome/tesla-ble.yaml](examples/esphome/tesla-ble.yaml).
+  Modèle : [projets-3d-esp32/tesla-ble/tesla-ble.yaml](https://github.com/Aratist/projets-3d-esp32/blob/main/tesla-ble/tesla-ble.yaml).
 - L'appairage se lance par le bouton « Appairage clé BLE » (section Diagnostic de l'appareil),
   puis la carte-clé sur la console : la voiture ne propose rien dans son menu Bluetooth.
 - `packages/evcc.yml` ne sert qu'avec EVCC : la recharge se pilote avec les entités de `client.yml`.
 - La recharge n'est pas encore pilotée par `energy_manager` : l'ajouter une fois l'appairage réussi.
   Comparaison des solutions de pilotage gratuites : [TESLA_Module.md](TESLA_Module.md).
 
-### Boîtiers imprimés en 3D
+### Boîtiers 3D et caméra du placard
 
-Tout boîtier demandé se livre en **script Python pour Fusion 360** (API `adsk`), que l'utilisateur
-lance dans Fusion : un dossier `<nom>/` avec `<nom>.py` et `<nom>.manifest`. Le script construit
-chaque pièce par esquisses et extrusions, pour que l'historique reste modifiable dans Fusion, et
-exporte les STL et STEP dans `export/` (ignoré par git). Pas d'OpenSCAD : Fusion 360 ne le lit pas.
-Exemples : [CAMERA_PLACARD/hardware/fusion/a_camera_placard/](CAMERA_PLACARD/hardware/fusion/a_camera_placard/),
-[examples/fusion/a_boitier_esp32/](examples/fusion/a_boitier_esp32/) (ESP32 DevKit, couvercle à clipser sans vis).
-
-### Caméra du placard (en projet)
-
-ESP32-S3 caméra, micro et haut-parleur dans le placard : météo pour Alexis, compliments pour
-Marie, entre 7 h et 9 h. Tout est décrit dans [CAMERA_PLACARD/CAMERA_PLACARD.md](CAMERA_PLACARD/CAMERA_PLACARD.md).
+Déplacés le 6 novembre 2026 dans le dépôt privé
+[Aratist/projets-3d-esp32](https://github.com/Aratist/projets-3d-esp32), avec les programmes
+ESPHome des relais (Linky, Madoka, Tesla) : ce dépôt ne garde que la gestion de l'énergie.
+Les modèles ESPHome cités plus haut y sont, dans `linky/`, `madoka/` et `tesla-ble/`.
 
 ### Tableau de bord « Analyse énergie »
 

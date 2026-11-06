@@ -9,7 +9,7 @@ vérifié est marqué **[non vérifié]**.
 ## Recommandation
 
 1. **ESPHome BLE**, sur l'ESP32 déjà en place (fork PedroKTFC, modèle
-   [examples/esphome/tesla-ble.yaml](examples/esphome/tesla-ble.yaml)). C'est la seule solution
+   [projets-3d-esp32/tesla-ble/tesla-ble.yaml](https://github.com/Aratist/projets-3d-esp32/blob/main/tesla-ble/tesla-ble.yaml)). C'est la seule solution
    entièrement locale, sans compte Tesla, sans coût et sans quota de commandes. Elle fournit déjà
    les entités « Charge » et « Ampérage de charge ».
    À régler : l'appairage, la portée Bluetooth depuis l'emplacement de l'ESP32. Le fork yoziru

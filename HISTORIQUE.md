@@ -89,7 +89,7 @@ de « Gestion énergie ») :
 
 ### Boîtier ESP32 à clipser
 
-- Script Fusion 360 [examples/fusion/a_boitier_esp32/](examples/fusion/a_boitier_esp32/) :
+- Script Fusion 360 [projets-3d-esp32/linky/a_BoiteESP32DevKit/](https://github.com/Aratist/projets-3d-esp32/tree/main/linky/a_BoiteESP32DevKit) :
   bac et couvercle clipsé sans vis pour un ESP32 DevKit, encoche USB, passe-fil, aérations.
   Copié aussi dans le dossier des scripts de Fusion
   (`%APPDATA%\Autodesk\Autodesk Fusion 360\API\Scripts\a_boitier_esp32`).
@@ -113,6 +113,3 @@ l'ESP-NOW reste la meilleure solution.
   http://192.168.4.1. Point d'accès pas encore testé sur la carte.
 - [ ] Fixer le canal Wi-Fi de « Lapin » sur 6 dans la box : sinon la liaison ESP-NOW se coupe.
 - [ ] Ajouter une clé de chiffrement à l'API ESPHome de la passerelle (facultatif).
-- [ ] Caméra du placard : lancer l'ERC et le DRC dans KiCad après l'avoir rouvert ; lancer le
-  script Fusion.
-- [ ] Boîtier ESP32 : mesurer la carte et imprimer un essai.
