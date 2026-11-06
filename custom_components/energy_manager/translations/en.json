@@ -110,6 +110,7 @@
       "appliance_no_source": "Provide an entity or a power sensor.",
       "appliance_no_power": "Provide the usual power of the appliance.",
       "offpeak_above_peak": "The off-peak price must be lower than the peak price.",
+      "export_above_peak": "The export price must be lower than the peak price.",
       "band_inverted": "The minimum must be lower than the maximum."
     },
     "abort": {
@@ -227,6 +228,7 @@
       "appliance_no_source": "Provide an entity or a power sensor.",
       "appliance_no_power": "Provide the usual power of the appliance.",
       "offpeak_above_peak": "The off-peak price must be lower than the peak price.",
+      "export_above_peak": "The export price must be lower than the peak price.",
       "band_inverted": "The minimum must be lower than the maximum."
     }
   },
@@ -284,6 +286,15 @@
       },
       "savings_today": {
         "name": "Solar savings today"
+      },
+      "savings_week": {
+        "name": "Solar savings this week"
+      },
+      "savings_month": {
+        "name": "Solar savings this month"
+      },
+      "savings_year": {
+        "name": "Solar savings this year"
       },
       "water_heater_status": {
         "name": "Water heater status",

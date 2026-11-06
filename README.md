@@ -57,7 +57,8 @@ Toutes les 30 s :
    inversé (la clim descend au minimum de la bande sur surplus). Une consigne changée à la
    main pendant un boost est respectée ; une clim éteinte n'est jamais rallumée.
 5. **Chauffe-eau** : avec un capteur de puissance, une consommation nulle pendant 10 min
-   alors qu'il est alimenté signifie « ballon chaud ». **Piscine** : durée de filtration =
+   alors qu'il est alimenté signifie « ballon chaud » ; en heures creuses ce signal est
+   ignoré (le ballon a pu être vidé le soir, et le thermostat ne chauffe pas pour rien). **Piscine** : durée de filtration =
    température de l'eau / 2 (bornée), ou durée fixe sans sonde.
 6. **Anti court-cycle** : durées minimales de marche/arrêt, et un équipement en marche n'est
    coupé que si le soutirage dépasse le seuil toléré.
@@ -71,7 +72,9 @@ Le cycle journalier commence à la fin des heures creuses.
   appareil déclaré, température intérieure.
 - **Tarifs** : tarif actuel (HP/HC), prix actuel, part solaire minimale rentable.
 - **Bilan du jour** : soutirage, injection, autoconsommation (kWh), coût réseau et économie
-  solaire (€). Remis à zéro à la fin des heures creuses.
+  solaire (€). Remis à zéro à la fin des heures creuses. L'économie solaire est aussi
+  cumulée par semaine, mois et année (attribut `period_start`), remise à zéro le lundi,
+  le 1er du mois et le 1er janvier (calendrier local).
 - **Pilotage** : état de chaque équipement (solaire, marche forcée, confort, terminé, en
   attente…), durées de chauffe / filtration, saison active.
 - **Commandes** : sélecteur *Saison* (automatique / hiver / été), interrupteur *Pilotage

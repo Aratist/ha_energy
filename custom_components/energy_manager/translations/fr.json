@@ -115,6 +115,7 @@
       "appliance_no_source": "Indiquez une entité ou un capteur de puissance.",
       "appliance_no_power": "Indiquez la puissance habituelle de l'appareil.",
       "offpeak_above_peak": "Le prix heures creuses doit être inférieur au prix heures pleines.",
+      "export_above_peak": "Le prix de revente doit être inférieur au prix heures pleines.",
       "band_inverted": "Le minimum doit être inférieur au maximum."
     },
     "abort": {
@@ -237,6 +238,7 @@
       "appliance_no_source": "Indiquez une entité ou un capteur de puissance.",
       "appliance_no_power": "Indiquez la puissance habituelle de l'appareil.",
       "offpeak_above_peak": "Le prix heures creuses doit être inférieur au prix heures pleines.",
+      "export_above_peak": "Le prix de revente doit être inférieur au prix heures pleines.",
       "band_inverted": "Le minimum doit être inférieur au maximum."
     }
   },
@@ -294,6 +296,15 @@
       },
       "savings_today": {
         "name": "Économie solaire du jour"
+      },
+      "savings_week": {
+        "name": "Économie solaire de la semaine"
+      },
+      "savings_month": {
+        "name": "Économie solaire du mois"
+      },
+      "savings_year": {
+        "name": "Économie solaire de l'année"
       },
       "water_heater_status": {
         "name": "État chauffe-eau",
