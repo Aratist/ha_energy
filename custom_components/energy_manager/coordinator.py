@@ -48,6 +48,7 @@ from .const import (
     CONF_CLIMATE,
     CONF_CLIMATE_POWER,
     CONF_CLIMATE_POWER_SENSOR,
+    CONF_GRID_IMPORT_ONLY,
     CONF_GRID_INVERT,
     CONF_GRID_POWER,
     CONF_HOUSE_POWER,
@@ -82,6 +83,7 @@ from .const import (
     CONF_WINTER_MIN,
     DEFAULTS,
     DOMAIN,
+    GRID_IMPORT_THRESHOLD,
     LOAD_CLIMATE,
     LOAD_POOL,
     LOAD_WATER_HEATER,
@@ -109,6 +111,7 @@ from .engine import (
     cycle_bounds,
     decide,
     estimate_consumption,
+    import_only_grid_power,
     in_window,
     pool_required_hours,
     season_for,
@@ -284,6 +287,13 @@ class EnergyManagerCoordinator(DataUpdateCoordinator[EnergyData]):
             data.consumption_estimated = True
 
         data.grid_power = self._grid_power()
+        if data.grid_power is not None and conf[CONF_GRID_IMPORT_ONLY]:
+            data.grid_power, data.grid_estimated = import_only_grid_power(
+                data.grid_power,
+                data.consumption,
+                data.production or 0.0,
+                GRID_IMPORT_THRESHOLD,
+            )
         if data.grid_power is None:
             data.grid_power = data.consumption - (data.production or 0.0)
             data.grid_estimated = True

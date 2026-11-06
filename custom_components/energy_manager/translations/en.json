@@ -7,6 +7,7 @@
         "data": {
           "grid_power": "Grid power",
           "grid_invert": "Invert grid power sign",
+          "grid_import_only": "Meter only measures import (no export)",
           "solar_power": "Solar production",
           "house_power": "House consumption",
           "baseline_power": "Baseline consumption (estimate)"
@@ -124,6 +125,7 @@
         "data": {
           "grid_power": "Grid power",
           "grid_invert": "Invert grid power sign",
+          "grid_import_only": "Meter only measures import (no export)",
           "solar_power": "Solar production",
           "house_power": "House consumption",
           "baseline_power": "Baseline consumption (estimate)"

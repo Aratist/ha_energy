@@ -150,6 +150,23 @@ def cycle_bounds(now: datetime, reset: time) -> tuple[datetime, datetime]:
     return start, start + timedelta(days=1)
 
 
+def import_only_grid_power(
+    measured: float,
+    consumption: float,
+    production: float,
+    threshold: float,
+) -> tuple[float, bool]:
+    """Puissance réseau d'un compteur qui ne mesure que le soutirage.
+
+    Retourne (puissance, estimée). Au-dessus de `threshold` le soutirage est
+    réel ; sinon on ignore la mesure (0 ≈ pas de soutirage, injection
+    inconnue) et on estime l'injection : min(0, consommation − production).
+    """
+    if measured > threshold:
+        return measured, False
+    return min(0.0, consumption - production), True
+
+
 def available_power(grid_power: float | None, loads: list[Load]) -> float | None:
     """Puissance disponible si aucune charge pilotée ne tournait."""
     if grid_power is None:
