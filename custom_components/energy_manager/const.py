@@ -113,6 +113,10 @@ DEFAULTS = {
     CONF_MIN_OFF: 5,
 }
 
+# Production solaire périmée : le capteur (cloud IzyPower, ~3 min) n'a rien
+# reçu depuis ce délai ou est indisponible. On cesse alors de compter sur le PV.
+PV_STALE_AFTER = timedelta(minutes=15)
+
 # Compteur « soutirage seul » : en dessous de ce seuil, on considère qu'il n'y a
 # pas de soutirage et l'injection éventuelle est estimée.
 GRID_IMPORT_THRESHOLD = 50
