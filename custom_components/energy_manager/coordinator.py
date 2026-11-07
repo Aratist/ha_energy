@@ -88,6 +88,7 @@ from .const import (
     LOAD_POOL,
     LOAD_WATER_HEATER,
     LOADS,
+    PV_STALE_AFTER,
     UPDATE_INTERVAL,
     WH_IDLE_DELAY,
     WH_IDLE_POWER,
@@ -113,6 +114,7 @@ from .engine import (
     estimate_consumption,
     import_only_grid_power,
     in_window,
+    is_stale,
     pool_required_hours,
     season_for,
 )
@@ -133,6 +135,7 @@ class EnergyData:
     """Instantané publié aux entités."""
 
     production: float | None = None
+    production_stale: bool = False
     consumption: float | None = None
     consumption_estimated: bool = False
     appliances_power: float = 0.0
@@ -279,7 +282,20 @@ class EnergyManagerCoordinator(DataUpdateCoordinator[EnergyData]):
         data.appliances_power = sum(data.appliance_power.values()) + managed_consumption
 
         if conf.get(CONF_SOLAR_POWER):
-            data.production = self._read_power(conf[CONF_SOLAR_POWER]) or 0.0
+            state = self._state_of(conf[CONF_SOLAR_POWER])
+            age = (
+                None
+                if state is None
+                else (dt_util.utcnow() - state.last_reported).total_seconds()
+            )
+            data.production_stale = is_stale(age, PV_STALE_AFTER.total_seconds())
+            # PV périmé : production inconnue, traitée comme nulle (prudence :
+            # aucun nouveau démarrage solaire, les charges en marche restent).
+            data.production = (
+                0.0
+                if data.production_stale
+                else self._read_power(conf[CONF_SOLAR_POWER]) or 0.0
+            )
         data.consumption = self._read_power(conf.get(CONF_HOUSE_POWER))
         if data.consumption is None:
             data.consumption = estimate_consumption(conf[CONF_BASELINE], appliances)
@@ -311,7 +327,11 @@ class EnergyManagerCoordinator(DataUpdateCoordinator[EnergyData]):
             else:
                 managed.append(load)
 
-        data.available_power = available_power(data.grid_power, managed)
+        data.available_power = available_power(
+            data.grid_power,
+            managed,
+            None if data.production_stale else data.production,
+        )
         data.decisions.update(
             decide(
                 managed,

@@ -226,3 +226,27 @@ def test_import_only_zero_import_estimates_injection():
 def test_import_only_never_estimates_import():
     # Le compteur dit « pas de soutirage » : l'estimation ne peut pas être > 0.
     assert engine.import_only_grid_power(10, 600, 100, 50) == (0.0, True)
+
+
+# --- Production périmée et puissance disponible bornée -----------------------
+
+
+def test_is_stale():
+    assert engine.is_stale(None, 900)  # jamais reçue / indisponible
+    assert engine.is_stale(901, 900)
+    assert not engine.is_stale(180, 900)  # ~3 min : cloud IzyPower normal
+
+
+def test_available_power_capped_by_production():
+    # Surplus estimé à 2610 W alors que le PV ne produit que 2132 W.
+    assert engine.available_power(-2610, [], production=2132) == 2132
+
+
+def test_available_power_not_capped_without_production():
+    assert engine.available_power(-2610, []) == 2610
+    assert engine.available_power(-2610, [], production=None) == 2610
+
+
+def test_available_power_cap_never_negative_and_keeps_import():
+    assert engine.available_power(300, [], production=0) == -300  # import réel conservé
+    assert engine.available_power(-500, [], production=0) == 0.0

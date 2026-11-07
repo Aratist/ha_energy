@@ -81,7 +81,10 @@ SENSORS = [
         **POWER,
     ),
     EnergySensorDescription(
-        key="production", value_fn=lambda d: d.production, **POWER
+        key="production",
+        value_fn=lambda d: d.production,
+        attrs_fn=lambda d: {"stale": d.production_stale},
+        **POWER,
     ),
     EnergySensorDescription(
         key="grid_power",
