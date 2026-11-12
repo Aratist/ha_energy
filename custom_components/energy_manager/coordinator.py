@@ -48,6 +48,7 @@ from .const import (
     CONF_CLIMATE,
     CONF_CLIMATE_POWER,
     CONF_CLIMATE_POWER_SENSOR,
+    CONF_FORECAST_FACTOR,
     CONF_GRID_IMPORT_ONLY,
     CONF_GRID_INVERT,
     CONF_GRID_POWER,
@@ -72,9 +73,11 @@ from .const import (
     CONF_PRICE_OFFPEAK_SENSOR,
     CONF_PRICE_PEAK,
     CONF_PRICE_PEAK_SENSOR,
+    CONF_PV_FORECAST_TOMORROW,
     CONF_SOLAR_POWER,
     CONF_SUMMER_MAX,
     CONF_SUMMER_MIN,
+    CONF_WH_FORECAST_SKIP_KWH,
     CONF_WH_MIN_HOURS,
     CONF_WH_NOMINAL,
     CONF_WH_POWER,
@@ -117,6 +120,7 @@ from .engine import (
     is_stale,
     pool_required_hours,
     season_for,
+    skip_night_heating,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -152,6 +156,7 @@ class EnergyData:
     runtime_s: dict[str, float] = field(default_factory=dict)
     required_s: dict[str, float] = field(default_factory=dict)
     day: dict[str, float] = field(default_factory=dict)
+    wh_night: dict[str, Any] = field(default_factory=dict)
 
 
 class EnergyManagerCoordinator(DataUpdateCoordinator[EnergyData]):
@@ -490,9 +495,39 @@ class EnergyManagerCoordinator(DataUpdateCoordinator[EnergyData]):
         required = self.conf[CONF_WH_MIN_HOURS] * 3600
         load.done = self._state["done"].get(LOAD_WATER_HEATER, False)
         load.remaining_s = 0.0 if load.done else max(0.0, required - runtime)
+        if data.in_offpeak and self._skip_night(now, load.remaining_s > 0):
+            # Nuit sautée : pas de rattrapage, la chauffe attend le soleil.
+            load.remaining_s = 0.0
+        data.wh_night = dict(self._state.get("wh_night") or {})
         data.runtime_s[LOAD_WATER_HEATER] = runtime
         data.required_s[LOAD_WATER_HEATER] = required
         return load
+
+    def _skip_night(self, now: datetime, needed: bool) -> bool:
+        """Décision prise une fois par nuit (au début des heures creuses), puis
+        conservée et sauvegardée jusqu'au cycle suivant."""
+        night = self._state.get("wh_night")
+        if not night or night.get("cycle") != self._state["cycle"]:
+            forecast = self._read_float(self.conf.get(CONF_PV_FORECAST_TOMORROW))
+            # Décision prise après minuit (redémarrage…) : « demain » désigne
+            # alors le jour suivant ; par prudence on ne saute pas.
+            skip = now.hour >= 12 and skip_night_heating(
+                forecast,
+                self.conf[CONF_FORECAST_FACTOR],
+                self.conf[CONF_WH_FORECAST_SKIP_KWH],
+                skipped_previous_night=self._state.get("wh_skipped_last", False),
+                needed=needed,
+            )
+            self._state["wh_night"] = {
+                "cycle": self._state["cycle"],
+                "skip": skip,
+                "forecast_kwh": forecast,
+                "corrected_kwh": None
+                if forecast is None
+                else round(forecast * self.conf[CONF_FORECAST_FACTOR], 2),
+            }
+            self._state["wh_skipped_last"] = skip
+        return self._state["wh_night"]["skip"]
 
     def _pool_load(self, now: datetime, elapsed: float, data: EnergyData) -> Load | None:
         result = self._switch_load(

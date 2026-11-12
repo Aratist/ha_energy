@@ -249,6 +249,26 @@ def decide(
     return decisions
 
 
+def skip_night_heating(
+    forecast_kwh: float | None,
+    factor: float,
+    threshold_kwh: float,
+    *,
+    skipped_previous_night: bool,
+    needed: bool = True,
+) -> bool:
+    """Faut-il sauter la chauffe de nuit du chauffe-eau pour attendre le soleil ?
+
+    Oui seulement si la fonction est activée (seuil > 0), qu'il reste de la
+    chauffe à faire, que la prévision corrigée (prévision × facteur) atteint le
+    seuil, et que la nuit précédente n'a pas déjà été sautée : sans sonde dans
+    le ballon, on ne prend jamais le risque de deux nuits sans chauffe.
+    """
+    if threshold_kwh <= 0 or forecast_kwh is None or skipped_previous_night or not needed:
+        return False
+    return forecast_kwh * factor >= threshold_kwh
+
+
 def pool_required_hours(
     water_temp: float | None, fixed_hours: float, min_hours: float, max_hours: float
 ) -> float:

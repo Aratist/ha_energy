@@ -38,6 +38,7 @@ from .const import (
     CONF_CLIMATE,
     CONF_CLIMATE_POWER,
     CONF_CLIMATE_POWER_SENSOR,
+    CONF_FORECAST_FACTOR,
     CONF_GRID_IMPORT_ONLY,
     CONF_GRID_INVERT,
     CONF_GRID_POWER,
@@ -62,9 +63,11 @@ from .const import (
     CONF_PRICE_OFFPEAK_SENSOR,
     CONF_PRICE_PEAK,
     CONF_PRICE_PEAK_SENSOR,
+    CONF_PV_FORECAST_TOMORROW,
     CONF_SOLAR_POWER,
     CONF_SUMMER_MAX,
     CONF_SUMMER_MIN,
+    CONF_WH_FORECAST_SKIP_KWH,
     CONF_WH_MIN_HOURS,
     CONF_WH_NOMINAL,
     CONF_WH_POWER,
@@ -103,6 +106,7 @@ SOURCES_SCHEMA = vol.Schema(
         vol.Optional(CONF_GRID_IMPORT_ONLY): BooleanSelector(),
         vol.Optional(CONF_SOLAR_POWER): POWER_SENSOR,
         vol.Optional(CONF_HOUSE_POWER): POWER_SENSOR,
+        vol.Optional(CONF_PV_FORECAST_TOMORROW): ANY_SENSOR,
         vol.Required(CONF_BASELINE): _number(0, 3000, 10, "W"),
     }
 )
@@ -156,6 +160,8 @@ SETTINGS_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_WH_NOMINAL): _number(100, 6000, 50, "W"),
         vol.Required(CONF_WH_MIN_HOURS): _number(0, 12, 0.5, "h"),
+        vol.Required(CONF_WH_FORECAST_SKIP_KWH): _number(0, 50, 0.5, "kWh"),
+        vol.Required(CONF_FORECAST_FACTOR): _number(0.3, 1.5, 0.05, "×"),
         vol.Required(CONF_POOL_NOMINAL): _number(100, 5000, 50, "W"),
         vol.Required(CONF_POOL_HOURS): _number(0, 24, 0.5, "h"),
         vol.Required(CONF_POOL_MIN_HOURS): _number(0, 24, 0.5, "h"),
