@@ -53,6 +53,15 @@ def _day(key: str, digits: int) -> Callable[[EnergyData], float | None]:
     return lambda d: round(d.day[key], digits) if key in d.day else None
 
 
+def _wh_night_attrs(data: EnergyData) -> dict[str, Any]:
+    night = data.wh_night or {}
+    return {
+        "nuit_sautee": night.get("skip", False),
+        "prevision_demain_kwh": night.get("forecast_kwh"),
+        "prevision_corrigee_kwh": night.get("corrected_kwh"),
+    }
+
+
 POWER = {
     "device_class": SensorDeviceClass.POWER,
     "state_class": SensorStateClass.MEASUREMENT,
@@ -140,7 +149,11 @@ SENSORS = [
     EnergySensorDescription(key="savings_today", value_fn=_day("savings", 2), **MONEY),
     *(
         EnergySensorDescription(
-            key=f"{load}_status", load=load, value_fn=_status(load), **STATUS
+            key=f"{load}_status",
+            load=load,
+            value_fn=_status(load),
+            attrs_fn=_wh_night_attrs if load == LOAD_WATER_HEATER else None,
+            **STATUS,
         )
         for load in LOADS
     ),

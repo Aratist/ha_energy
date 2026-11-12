@@ -10,10 +10,12 @@
           "grid_import_only": "Meter only measures import (no export)",
           "solar_power": "Solar production",
           "house_power": "House consumption",
-          "baseline_power": "Baseline consumption (estimate)"
+          "baseline_power": "Baseline consumption (estimate)",
+          "pv_forecast_tomorrow": "Solar production forecast for tomorrow (kWh)"
         },
         "data_description": {
-          "baseline_power": "Permanent consumption (router, fridge, standby…) added to the declared appliances when the consumption measurement is unavailable."
+          "baseline_power": "Permanent consumption (router, fridge, standby…) added to the declared appliances when the consumption measurement is unavailable.",
+          "pv_forecast_tomorrow": "For example sensor.energy_production_tomorrow (Forecast.Solar). Read when off-peak hours start."
         }
       },
       "loads": {
@@ -101,7 +103,13 @@
           "margin": "Surplus safety margin",
           "max_import": "Tolerated grid import before stopping a device",
           "min_on_minutes": "Minimum on time",
-          "min_off_minutes": "Minimum off time"
+          "min_off_minutes": "Minimum off time",
+          "water_heater_forecast_skip_kwh": "Water heater: skip the night if tomorrow's forecast ≥",
+          "forecast_factor": "Solar forecast correction factor"
+        },
+        "data_description": {
+          "water_heater_forecast_skip_kwh": "Corrected forecast in kWh. 0 = disabled. Never two skipped nights in a row.",
+          "forecast_factor": "The forecast is multiplied by this factor (0.7 if it overestimates by about 30%)."
         }
       }
     },
@@ -128,10 +136,12 @@
           "grid_import_only": "Meter only measures import (no export)",
           "solar_power": "Solar production",
           "house_power": "House consumption",
-          "baseline_power": "Baseline consumption (estimate)"
+          "baseline_power": "Baseline consumption (estimate)",
+          "pv_forecast_tomorrow": "Solar production forecast for tomorrow (kWh)"
         },
         "data_description": {
-          "baseline_power": "Permanent consumption (router, fridge, standby…) added to the declared appliances when the consumption measurement is unavailable."
+          "baseline_power": "Permanent consumption (router, fridge, standby…) added to the declared appliances when the consumption measurement is unavailable.",
+          "pv_forecast_tomorrow": "For example sensor.energy_production_tomorrow (Forecast.Solar). Read when off-peak hours start."
         }
       },
       "loads": {
@@ -219,7 +229,13 @@
           "margin": "Surplus safety margin",
           "max_import": "Tolerated grid import before stopping a device",
           "min_on_minutes": "Minimum on time",
-          "min_off_minutes": "Minimum off time"
+          "min_off_minutes": "Minimum off time",
+          "water_heater_forecast_skip_kwh": "Water heater: skip the night if tomorrow's forecast ≥",
+          "forecast_factor": "Solar forecast correction factor"
+        },
+        "data_description": {
+          "water_heater_forecast_skip_kwh": "Corrected forecast in kWh. 0 = disabled. Never two skipped nights in a row.",
+          "forecast_factor": "The forecast is multiplied by this factor (0.7 if it overestimates by about 30%)."
         }
       }
     },

@@ -10,10 +10,12 @@
           "grid_import_only": "Le compteur ne mesure que le soutirage (pas d'injection)",
           "solar_power": "Production solaire",
           "house_power": "Consommation de la maison",
-          "baseline_power": "Talon de consommation (estimation)"
+          "baseline_power": "Talon de consommation (estimation)",
+          "pv_forecast_tomorrow": "Prévision de production solaire demain (kWh)"
         },
         "data_description": {
-          "baseline_power": "Consommation permanente de la maison (box, frigo, veilles…) ajoutée aux appareils déclarés quand la mesure de consommation est indisponible."
+          "baseline_power": "Consommation permanente de la maison (box, frigo, veilles…) ajoutée aux appareils déclarés quand la mesure de consommation est indisponible.",
+          "pv_forecast_tomorrow": "Par exemple sensor.energy_production_tomorrow (Forecast.Solar). Lue au début des heures creuses."
         }
       },
       "loads": {
@@ -101,12 +103,16 @@
           "margin": "Marge de sécurité sur le surplus",
           "max_import": "Soutirage toléré avant arrêt d'un équipement",
           "min_on_minutes": "Durée minimale de marche",
-          "min_off_minutes": "Durée minimale d'arrêt"
+          "min_off_minutes": "Durée minimale d'arrêt",
+          "water_heater_forecast_skip_kwh": "Chauffe-eau : sauter la nuit si production prévue demain ≥",
+          "forecast_factor": "Correction de la prévision solaire"
         },
         "data_description": {
           "water_heater_min_hours": "Si cette durée n'est pas atteinte grâce au soleil, le chauffe-eau est forcé en heures creuses. Un capteur de puissance permet de détecter que le ballon est chaud.",
           "pool_hours": "Avec une sonde, la durée suit la règle « température de l'eau / 2 ».",
-          "max_import": "Hystérésis : un équipement en marche n'est coupé que si le soutirage dépasse cette valeur."
+          "max_import": "Hystérésis : un équipement en marche n'est coupé que si le soutirage dépasse cette valeur.",
+          "water_heater_forecast_skip_kwh": "Prévision corrigée en kWh. 0 = désactivé. Jamais deux nuits sautées de suite.",
+          "forecast_factor": "La prévision est multipliée par ce facteur (0,7 si elle surestime d'environ 30 %)."
         }
       }
     },
@@ -133,10 +139,12 @@
           "grid_import_only": "Le compteur ne mesure que le soutirage (pas d'injection)",
           "solar_power": "Production solaire",
           "house_power": "Consommation de la maison",
-          "baseline_power": "Talon de consommation (estimation)"
+          "baseline_power": "Talon de consommation (estimation)",
+          "pv_forecast_tomorrow": "Prévision de production solaire demain (kWh)"
         },
         "data_description": {
-          "baseline_power": "Consommation permanente de la maison (box, frigo, veilles…) ajoutée aux appareils déclarés quand la mesure de consommation est indisponible."
+          "baseline_power": "Consommation permanente de la maison (box, frigo, veilles…) ajoutée aux appareils déclarés quand la mesure de consommation est indisponible.",
+          "pv_forecast_tomorrow": "Par exemple sensor.energy_production_tomorrow (Forecast.Solar). Lue au début des heures creuses."
         }
       },
       "loads": {
@@ -224,12 +232,16 @@
           "margin": "Marge de sécurité sur le surplus",
           "max_import": "Soutirage toléré avant arrêt d'un équipement",
           "min_on_minutes": "Durée minimale de marche",
-          "min_off_minutes": "Durée minimale d'arrêt"
+          "min_off_minutes": "Durée minimale d'arrêt",
+          "water_heater_forecast_skip_kwh": "Chauffe-eau : sauter la nuit si production prévue demain ≥",
+          "forecast_factor": "Correction de la prévision solaire"
         },
         "data_description": {
           "water_heater_min_hours": "Si cette durée n'est pas atteinte grâce au soleil, le chauffe-eau est forcé en heures creuses. Un capteur de puissance permet de détecter que le ballon est chaud.",
           "pool_hours": "Avec une sonde, la durée suit la règle « température de l'eau / 2 ».",
-          "max_import": "Hystérésis : un équipement en marche n'est coupé que si le soutirage dépasse cette valeur."
+          "max_import": "Hystérésis : un équipement en marche n'est coupé que si le soutirage dépasse cette valeur.",
+          "water_heater_forecast_skip_kwh": "Prévision corrigée en kWh. 0 = désactivé. Jamais deux nuits sautées de suite.",
+          "forecast_factor": "La prévision est multipliée par ce facteur (0,7 si elle surestime d'environ 30 %)."
         }
       }
     },

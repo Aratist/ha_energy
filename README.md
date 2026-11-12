@@ -64,6 +64,13 @@ Toutes les 30 s :
 
 Le cycle journalier commence à la fin des heures creuses.
 
+**Prévision solaire (optionnelle)** : avec un capteur de production prévue demain (ex.
+`sensor.energy_production_tomorrow` de Forecast.Solar) et un seuil > 0, le chauffe-eau saute
+son rattrapage de nuit quand la prévision corrigée (prévision × facteur, 0,7 par défaut)
+atteint le seuil : il attend le soleil. La décision est prise au début des heures creuses et
+visible dans les attributs de l'état du chauffe-eau. Sans sonde dans le ballon, jamais deux
+nuits sautées de suite.
+
 ## Entités créées
 
 - **Mesures** : consommation (attribut `source` : mesurée/estimée), production, puissance

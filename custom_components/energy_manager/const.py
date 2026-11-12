@@ -23,12 +23,18 @@ CONF_GRID_IMPORT_ONLY = "grid_import_only"
 CONF_SOLAR_POWER = "solar_power"
 CONF_HOUSE_POWER = "house_power"
 CONF_BASELINE = "baseline_power"  # talon de la maison pour l'estimation
+# Prévision de production solaire du lendemain (kWh), ex. Forecast.Solar
+CONF_PV_FORECAST_TOMORROW = "pv_forecast_tomorrow"
+CONF_FORECAST_FACTOR = "forecast_factor"  # correction de la prévision (souvent surestimée)
 
 # Chauffe-eau
 CONF_WH_SWITCH = "water_heater_switch"
 CONF_WH_POWER = "water_heater_power"
 CONF_WH_NOMINAL = "water_heater_nominal_power"
 CONF_WH_MIN_HOURS = "water_heater_min_hours"
+# Production prévue demain (corrigée) à partir de laquelle on saute la chauffe
+# de nuit pour attendre le soleil ; 0 = fonction désactivée.
+CONF_WH_FORECAST_SKIP_KWH = "water_heater_forecast_skip_kwh"
 
 # Piscine
 CONF_POOL_SWITCH = "pool_switch"
@@ -92,6 +98,8 @@ DEFAULTS = {
     CONF_APPLIANCES: [],
     CONF_WH_NOMINAL: 2000,
     CONF_WH_MIN_HOURS: 3,
+    CONF_WH_FORECAST_SKIP_KWH: 0,
+    CONF_FORECAST_FACTOR: 0.7,
     CONF_POOL_NOMINAL: 800,
     CONF_POOL_HOURS: 6,
     CONF_POOL_MIN_HOURS: 2,

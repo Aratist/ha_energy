@@ -250,3 +250,33 @@ def test_available_power_not_capped_without_production():
 def test_available_power_cap_never_negative_and_keeps_import():
     assert engine.available_power(300, [], production=0) == -300  # import réel conservé
     assert engine.available_power(-500, [], production=0) == 0.0
+
+
+# --- Chauffe-eau : nuit sautée selon la prévision solaire du lendemain -------
+
+
+def skip(forecast, *, threshold=4.0, factor=0.7, previous=False, needed=True):
+    return engine.skip_night_heating(
+        forecast, factor, threshold, skipped_previous_night=previous, needed=needed
+    )
+
+
+def test_skip_when_corrected_forecast_reaches_threshold():
+    assert skip(6.0)  # 6 × 0,7 = 4,2 kWh ≥ 4
+
+
+def test_no_skip_when_corrected_forecast_too_low():
+    assert not skip(5.0)  # 5 × 0,7 = 3,5 kWh < 4
+
+
+def test_no_skip_when_disabled_or_unknown():
+    assert not skip(20.0, threshold=0)
+    assert not skip(None)
+
+
+def test_never_two_nights_in_a_row():
+    assert not skip(20.0, previous=True)
+
+
+def test_no_skip_when_nothing_to_heat():
+    assert not skip(20.0, needed=False)
