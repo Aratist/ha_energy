@@ -61,8 +61,11 @@ sans couper DTR/RTS redémarre la carte et interrompt un appairage en cours.
 
 - Tableau de bord en mode stockage (`url_path: energie-analyse`), reflété par
   [examples/analyse.yaml](examples/analyse.yaml) : garder les deux synchronisés.
-- Groupe « Allumage des appareils » : chauffe-eau, piscine, clim bas, clim haut.
-  Jacuzzi et machine à laver en sont exclus, car leurs prises restent toujours allumées.
+- Groupe « Allumage des appareils » : chauffe-eau, piscine, clim bas, clim haut, imprimante 3D,
+  lampe de l'imprimante (`switch.prise_lampe_3dprinter`), prise dehors devant (pompe).
+  Jacuzzi, machine à laver et grille-pain en sont exclus, car leurs prises restent toujours allumées.
+- Graphiques de consommation : toutes les prises connectées avec mesure (y compris grille-pain).
+  La clim du haut (relais Madoka) n'a pas de mesure de puissance : seulement dans « Allumage ».
 - Une entité `climate` s'y affiche en courbe de température. Chaque clim passe donc par un
   capteur binaire (aide Modèle) : `binary_sensor.clim_bas_allumee` et
   `binary_sensor.clim_haut_allumee`, allumés quand la clim n'est pas `off`.
