@@ -127,46 +127,70 @@ views:
       hours_to_show: 24
       grid_options:
         columns: full
+      title: 'Appareils pilotés : en marche'
       entities:
       - entity: switch.chauffe_eau_prise_1
         name: Chauffe-eau
-      - entity: sensor.gestionnaire_d_energie_etat_chauffe_eau
-        name: ↳ raison
       - entity: switch.piscine_prise_1
         name: Piscine
-      - entity: sensor.gestionnaire_d_energie_etat_piscine
-        name: ↳ raison
       - entity: binary_sensor.clim_bas_allumee
         name: Clim du bas
-      - entity: sensor.gestionnaire_d_energie_etat_clim
-        name: ↳ raison
       - entity: sensor.gestionnaire_d_energie_tarif_actuel
         name: Tarif
-    column_span: 2
-  - type: grid
-    cards:
-    - type: heading
-      heading: Allumage des autres appareils
-      icon: mdi:power-plug
     - type: history-graph
       hours_to_show: 24
       grid_options:
         columns: full
+      title: Pourquoi le gestionnaire a décidé ainsi
       entities:
-      - entity: switch.chauffe_eau_prise_1
+      - entity: sensor.gestionnaire_d_energie_etat_chauffe_eau
         name: Chauffe-eau
-      - entity: switch.piscine_prise_1
+      - entity: sensor.gestionnaire_d_energie_etat_piscine
         name: Piscine
-      - entity: binary_sensor.clim_bas_allumee
-        name: Clim bas
-      - entity: binary_sensor.clim_haut_allumee
-        name: Clim haut
-      - entity: switch.prise_imprimante_commutateur
+      - entity: sensor.gestionnaire_d_energie_etat_clim
+        name: Clim du bas
+    - type: markdown
+      content: Touche une barre pour lire la raison exacte à cette heure-là.
+      grid_options:
+        columns: full
+      text_only: true
+    column_span: 2
+  - type: grid
+    cards:
+    - type: heading
+      heading: Autres appareils
+      icon: mdi:power-plug
+    - type: markdown
+      content: '« En marche » d''après la puissance mesurée : une prise toujours allumée n''apparaît que quand l''appareil
+        consomme vraiment. **Sans capteur** : voiture la nuit (≈ 4 kW en continu), plaques ou four aux heures des
+        repas.'
+      grid_options:
+        columns: full
+      text_only: true
+    - type: history-graph
+      hours_to_show: 24
+      grid_options:
+        columns: full
+      title: 'Autres appareils : en marche'
+      entities:
+      - entity: binary_sensor.machine_a_laver_en_marche
+        name: Machine à laver
+      - entity: binary_sensor.jacuzzi_en_chauffe
+        name: Jacuzzi (chauffe)
+      - entity: binary_sensor.grille_pain_en_marche
+        name: Grille-pain
+      - entity: binary_sensor.imprimante_3d_en_marche
         name: Imprimante 3D
       - entity: switch.prise_lampe_3dprinter
         name: Lampe imprimante 3D
-      - entity: switch.prisepompe_commutateur
-        name: Prise dehors devant (pompe)
+      - entity: binary_sensor.pompe_dehors_devant_en_marche
+        name: Pompe dehors devant
+      - entity: binary_sensor.pompe_interrupteur_en_marche
+        name: Pompe (interrupteur)
+      - entity: binary_sensor.clim_haut_allumee
+        name: Clim du haut
+      - entity: binary_sensor.appareils_sans_capteur_en_marche
+        name: Sans capteur (voiture, cuisson)
     column_span: 2
 - title: Historique
   path: historique
@@ -523,6 +547,13 @@ views:
       - entity: sensor.grille_pain_prise_deconnectee_puissance
         name: Grille-pain
         color: '#d81b60'
+      - entity: sensor.switch_pompe_puissance
+        name: Pompe (interrupteur)
+        color: '#8d6e63'
+      - entity: sensor.gestionnaire_d_energie_consommation
+        attribute: non_mesure
+        name: Sans capteur (voiture, cuisson)
+        color: '#7e57c2'
   - type: grid
     column_span: 2
     cards:
@@ -586,6 +617,9 @@ views:
       - entity: sensor.grille_pain_prise_deconnectee_summation_delivered
         name: Grille-pain
         color: '#d81b60'
+      - entity: sensor.switch_pompe_consommation
+        name: Pompe (interrupteur)
+        color: '#8d6e63'
   - type: grid
     cards:
     - type: heading
@@ -644,6 +678,9 @@ views:
       - entity: sensor.grille_pain_prise_deconnectee_summation_delivered
         name: Grille-pain
         color: '#d81b60'
+      - entity: sensor.switch_pompe_consommation
+        name: Pompe (interrupteur)
+        color: '#8d6e63'
   - type: grid
     cards:
     - type: heading

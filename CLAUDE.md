@@ -112,9 +112,14 @@ Les modèles ESPHome cités plus haut y sont, dans `linky/`, `madoka/` et `tesla
 - Tableau de bord en mode stockage (`url_path: energie-analyse`), reflété par
   [examples/analyse.yaml](examples/analyse.yaml) : garder les deux synchronisés. Les noms
   d'entités IzyPower y sont anonymisés (`izypower_cloud_maison`, `serie_…`) : adapter au vrai HA.
-- Groupe « Allumage des appareils » : chauffe-eau, piscine, clim bas, clim haut, imprimante 3D,
-  lampe de l'imprimante (`switch.prise_lampe_3dprinter`), prise dehors devant (pompe).
-  Jacuzzi, machine à laver et grille-pain en sont exclus, car leurs prises restent toujours allumées.
+- Frises de l'onglet « Aujourd'hui » : « Appareils pilotés : en marche » et « Pourquoi le
+  gestionnaire a décidé ainsi » (une ligne par appareil, jamais de ligne « raison ») ; « Autres
+  appareils : en marche » utilise des aides Modèle basées sur la puissance
+  (`binary_sensor.machine_a_laver_en_marche`, `jacuzzi_en_chauffe`, `grille_pain_en_marche`,
+  `imprimante_3d_en_marche`, `pompe_dehors_devant_en_marche`, `pompe_interrupteur_en_marche`,
+  `appareils_sans_capteur_en_marche`), car ces prises restent toujours allumées.
+- Appareils mesurés déclarés dans `energy_manager` : jacuzzi, machine à laver, imprimante 3D et
+  sa lampe, prise dehors devant (pompe), pompe (interrupteur `light.switch_pompe`), grille-pain.
 - Graphiques de consommation : toutes les prises connectées avec mesure (y compris grille-pain).
   La clim du haut (relais Madoka) n'a pas de mesure de puissance : seulement dans « Allumage ».
 - Une entité `climate` s'y affiche en courbe de température. Chaque clim passe donc par un

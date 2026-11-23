@@ -368,21 +368,33 @@ views:
       hours_to_show: 24
       grid_options:
         columns: full
+      title: 'Appareils pilotés : en marche'
       entities:
       - entity: switch.chauffe_eau_prise_1
         name: Chauffe-eau
-      - entity: sensor.gestionnaire_d_energie_etat_chauffe_eau
-        name: ↳ raison
       - entity: switch.piscine_prise_1
         name: Piscine
-      - entity: sensor.gestionnaire_d_energie_etat_piscine
-        name: ↳ raison
       - entity: binary_sensor.clim_bas_allumee
         name: Clim du bas
-      - entity: sensor.gestionnaire_d_energie_etat_clim
-        name: ↳ raison
       - entity: sensor.gestionnaire_d_energie_tarif_actuel
         name: Tarif
+    - type: history-graph
+      hours_to_show: 24
+      grid_options:
+        columns: full
+      title: Pourquoi le gestionnaire a décidé ainsi
+      entities:
+      - entity: sensor.gestionnaire_d_energie_etat_chauffe_eau
+        name: Chauffe-eau
+      - entity: sensor.gestionnaire_d_energie_etat_piscine
+        name: Piscine
+      - entity: sensor.gestionnaire_d_energie_etat_clim
+        name: Clim du bas
+    - type: markdown
+      content: Touche une barre pour lire la raison exacte à cette heure-là.
+      grid_options:
+        columns: full
+      text_only: true
     column_span: 2
   - type: grid
     cards:
