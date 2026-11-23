@@ -96,6 +96,14 @@ sans couper DTR/RTS redémarre la carte et interrompt un appairage en cours.
   solaire = production du jour IzyPower + Forecast.Solar ; 10 appareils mesurés.
   L'application Linky (Enedis, J-1) importe toujours `linky:<PRM>` (prix HP/HC à jour) mais
   n'est plus utilisée par le tableau. `sensor.linky_energie_soutiree` (ancien module) est mort.
+  Historique de `sensor.linky_energie_soutiree_reseau` reconstitué du 5 au 23 novembre 2026 à
+  partir des moyennes horaires de `sensor.puissance_soutiree_reseau`.
+- Tableau « Linky / Enedis » (`url_path: linky-enedis`, [examples/linky_enedis.yaml](examples/linky_enedis.yaml)) :
+  compare chaque jour et chaque heure le module local à Enedis. L'automatisation
+  `automation.comparaison_linky_local_enedis` (7 h 15, 10 h 15) range la veille dans
+  `input_number.comparaison_enedis_veille` et `input_number.comparaison_linky_local_veille`.
+  Écart habituel : le module compte ≈ 200 W de trop en permanence (SINSTS en VA, Enedis facture
+  des W actifs), soit +3 à +4 kWh/jour ; le 11/11, valeur figée (+20 kWh).
 
 ### Tesla : relais Bluetooth (appairage en cours)
 

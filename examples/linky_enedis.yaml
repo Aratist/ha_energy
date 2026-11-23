@@ -1,0 +1,158 @@
+title: Linky / Enedis
+views:
+- title: Comparaison
+  path: comparaison
+  icon: mdi:compare-horizontal
+  type: sections
+  max_columns: 2
+  sections:
+  - type: grid
+    cards:
+    - type: heading
+      heading: La veille
+      icon: mdi:calendar-today
+    - type: markdown
+      content: '{% set e=states(''input_number.comparaison_enedis_veille'')|float(0) %}{% set l=states(''input_number.comparaison_linky_local_veille'')|float(0)
+        %}{% set d=l-e %}{% if e==0 %}## ⏳ En attente des données Enedis
+
+        Enedis envoie la consommation de la veille entre 7 h et 10 h ; la comparaison est calculée à 7 h 15 et 10
+        h 15.{% else %}{% set p=d/e*100 %}## {{ ''🟢'' if -1<=d<=5 else (''🟡'' if -3<=d<=10 else ''🔴'') }} Hier :
+        écart de {{ ''%+.1f''|format(d)|replace(''.'','','') }} kWh ({{ ''%+.0f''|format(p) }} %)
+
+
+        | | kWh |
+
+        |---|---|
+
+        | Enedis (facturé) | **{{ ''%.1f''|format(e)|replace(''.'','','') }}** |
+
+        | Module Linky local | **{{ ''%.1f''|format(l)|replace(''.'','','') }}** |
+
+
+        {{ ''Le module compte plus qu\''Enedis'' if d>0 else ''Le module compte moins qu\''Enedis'' }}{% if -1<=d<=5
+        %} : écart habituel, dû surtout aux ≈ 200 W comptés en trop en permanence (voir plus bas).{% elif d>5 %}
+        : écart anormal, cherche une valeur figée sur le graphique horaire.{% else %} : le module a sans doute été
+        coupé (voir sa disponibilité).{% endif %}{% endif %}
+
+
+        *Mis à jour le {{ as_timestamp(states[''input_number.comparaison_enedis_veille''].last_changed)|timestamp_custom(''%d/%m
+        à %H:%M'') }}*'
+      text_only: true
+      grid_options:
+        columns: full
+    column_span: 1
+  - type: grid
+    cards:
+    - type: heading
+      heading: Fiabilité du module
+      icon: mdi:access-point-network
+    - type: tile
+      entity: sensor.linky_disponibilite_24_h
+      name: Disponibilité 24 h
+      grid_options:
+        columns: 6
+    - type: tile
+      entity: sensor.linky_disponibilite_7_jours
+      name: Disponibilité 7 jours
+      grid_options:
+        columns: 6
+    - type: tile
+      entity: sensor.linky_coupures_24_h
+      name: Coupures 24 h
+      grid_options:
+        columns: 6
+    - type: tile
+      entity: binary_sensor.linky_status
+      name: Module du compteur
+      grid_options:
+        columns: 6
+    - type: markdown
+      content: Une coupure fait **sous-compter** le module ; les données Enedis, elles, sont toujours complètes.
+      text_only: true
+      grid_options:
+        columns: full
+    column_span: 1
+  - type: grid
+    cards:
+    - type: heading
+      heading: Par jour
+      icon: mdi:chart-bar
+    - type: markdown
+      content: 'Deux barres par jour : **Enedis** (ce qui est facturé) et **le module local**. Les données Enedis
+        s''arrêtent à la veille ; la barre du jour n''existe que pour le module.'
+      text_only: true
+      grid_options:
+        columns: full
+    - type: statistics-graph
+      title: Consommation par jour (30 jours)
+      period: day
+      days_to_show: 30
+      chart_type: bar
+      stat_types:
+      - change
+      hide_legend: false
+      grid_options:
+        columns: full
+      entities:
+      - entity: linky:<PRM>
+        name: Enedis (facturé)
+      - entity: sensor.linky_energie_soutiree_reseau
+        name: Module Linky local
+    column_span: 2
+  - type: grid
+    cards:
+    - type: heading
+      heading: Par heure
+      icon: mdi:chart-timeline-variant
+    - type: markdown
+      content: Pour trouver **où** se crée un écart. Un palier plat du module pendant que la barre Enedis varie
+        signale une valeur figée.
+      text_only: true
+      grid_options:
+        columns: full
+    - type: statistics-graph
+      title: Consommation par heure (3 jours)
+      period: hour
+      days_to_show: 3
+      chart_type: line
+      stat_types:
+      - change
+      hide_legend: false
+      grid_options:
+        columns: full
+      entities:
+      - entity: linky:<PRM>
+        name: Enedis (facturé)
+      - entity: sensor.linky_energie_soutiree_reseau
+        name: Module Linky local
+    column_span: 2
+  - type: grid
+    cards:
+    - type: heading
+      heading: Comprendre
+      icon: mdi:lightbulb-on-outline
+    - type: markdown
+      content: '### D''où viennent les écarts ?
+
+        Analyse des 17 premiers jours (5 au 21 novembre) :
+
+
+        | Cause | Effet | Comment la reconnaître |
+
+        |---|---|---|
+
+        | **Puissance apparente** : le module lit la puissance en VA (SINSTS), Enedis facture des kWh actifs | Le
+        module compte **≈ 200 W de trop en permanence**, soit **+3 à +4 kWh/jour** (+5 à +20 %) | Écart régulier,
+        plus fort la nuit et à faible consommation ; presque nul quand le soleil produit |
+
+        | **Valeur figée** : le module renvoie la même valeur pendant des heures | Gros écart ponctuel (11/11 :
+        4 081 W figés de 4 h à 9 h, **+20 kWh**) | Palier plat sur le graphique horaire |
+
+        | **Coupure du module** | Le module compte **moins** qu''Enedis | Disponibilité < 100 % |
+
+
+        Écart attendu au quotidien : **+3 à +4 kWh**. Au-delà, regarde le graphique horaire du jour concerné.'
+      text_only: true
+      grid_options:
+        columns: full
+    column_span: 2
