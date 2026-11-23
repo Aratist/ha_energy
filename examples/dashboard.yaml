@@ -65,6 +65,26 @@ views:
       vertical: true
       icon: mdi:transmission-tower
       color: red
+    - type: custom:mushroom-template-card
+      primary: Appareils sans capteur
+      secondary: '{% set u=state_attr(''sensor.gestionnaire_d_energie_consommation'',''non_mesure'')|float(0) %}{%
+        set h=now().hour+now().minute/60 %}{% set hc=is_state(''sensor.gestionnaire_d_energie_tarif_actuel'',''offpeak'')
+        %}{% if u < 300 %}Rien de notable : tout ce qui consomme est mesuré.{% elif u >= 2500 and hc %}{{ u|round(-2)|int
+        }} W · sans doute la recharge des voitures{% elif (11.5 <= h < 14.5) or (18 <= h < 21) %}{{ u|round(-2)|int
+        }} W · sans doute la cuisson (plaques ou four){% elif u >= 2500 %}{{ u|round(-2)|int }} W · gros appareil
+        : four, plaques ou recharge d''une voiture{% else %}{{ u|round(-2)|int }} W · petits appareils non mesurés{%
+        endif %}'
+      icon: '{{ ''mdi:car-electric'' if state_attr(''sensor.gestionnaire_d_energie_consommation'',''non_mesure'')|float(0)
+        >= 2500 and is_state(''sensor.gestionnaire_d_energie_tarif_actuel'',''offpeak'') else ''mdi:stove'' if state_attr(''sensor.gestionnaire_d_energie_consommation'',''non_mesure'')|float(0)
+        >= 300 else ''mdi:check-circle-outline'' }}'
+      icon_color: '{{ ''deep-purple'' if state_attr(''sensor.gestionnaire_d_energie_consommation'',''non_mesure'')|float(0)
+        >= 300 else ''disabled'' }}'
+      multiline_secondary: true
+      grid_options:
+        columns: 12
+      tap_action:
+        action: more-info
+      entity: sensor.gestionnaire_d_energie_consommation
     - type: markdown
       content: '*Réseau positif = achat, négatif = soleil en trop.*'
       grid_options:
