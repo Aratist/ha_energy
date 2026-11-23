@@ -246,3 +246,74 @@ def test_clamp():
     assert engine.clamp(17, 19, 23) == 19
     assert engine.clamp(25, 19, 23) == 23
     assert engine.clamp(21, 19, 23) == 21
+
+
+# --- Compteur « soutirage seul » (Linky sans injection) ----------------------
+
+
+def test_import_only_real_import_is_kept():
+    assert engine.import_only_grid_power(450, 400, 0, 50) == (450, False)
+
+
+def test_import_only_zero_import_estimates_injection():
+    # Pas de soutirage, 2000 W de PV, 600 W de conso estimée : injection estimée.
+    assert engine.import_only_grid_power(0, 600, 2000, 50) == (-1400, True)
+
+
+def test_import_only_never_estimates_import():
+    # Le compteur dit « pas de soutirage » : l'estimation ne peut pas être > 0.
+    assert engine.import_only_grid_power(10, 600, 100, 50) == (0.0, True)
+
+
+# --- Production périmée et puissance disponible bornée -----------------------
+
+
+def test_is_stale():
+    assert engine.is_stale(None, 900)  # jamais reçue / indisponible
+    assert engine.is_stale(901, 900)
+    assert not engine.is_stale(180, 900)  # ~3 min : cloud IzyPower normal
+
+
+def test_available_power_capped_by_production():
+    # Surplus estimé à 2610 W alors que le PV ne produit que 2132 W.
+    assert engine.available_power(-2610, [], production=2132) == 2132
+
+
+def test_available_power_not_capped_without_production():
+    assert engine.available_power(-2610, []) == 2610
+    assert engine.available_power(-2610, [], production=None) == 2610
+
+
+def test_available_power_cap_never_negative_and_keeps_import():
+    assert engine.available_power(300, [], production=0) == -300  # import réel conservé
+    assert engine.available_power(-500, [], production=0) == 0.0
+
+
+# --- Chauffe-eau : nuit sautée selon la prévision solaire du lendemain -------
+
+
+def skip(forecast, *, threshold=4.0, factor=0.7, previous=False, needed=True):
+    return engine.skip_night_heating(
+        forecast, factor, threshold, skipped_previous_night=previous, needed=needed
+    )
+
+
+def test_skip_when_corrected_forecast_reaches_threshold():
+    assert skip(6.0)  # 6 × 0,7 = 4,2 kWh ≥ 4
+
+
+def test_no_skip_when_corrected_forecast_too_low():
+    assert not skip(5.0)  # 5 × 0,7 = 3,5 kWh < 4
+
+
+def test_no_skip_when_disabled_or_unknown():
+    assert not skip(20.0, threshold=0)
+    assert not skip(None)
+
+
+def test_never_two_nights_in_a_row():
+    assert not skip(20.0, previous=True)
+
+
+def test_no_skip_when_nothing_to_heat():
+    assert not skip(20.0, needed=False)

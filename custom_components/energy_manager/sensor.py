@@ -74,6 +74,15 @@ def _savings(period: str) -> EnergySensorDescription:
     )
 
 
+def _wh_night_attrs(data: EnergyData) -> dict[str, Any]:
+    night = data.wh_night or {}
+    return {
+        "nuit_sautee": night.get("skip", False),
+        "prevision_demain_kwh": night.get("forecast_kwh"),
+        "prevision_corrigee_kwh": night.get("corrected_kwh"),
+    }
+
+
 POWER = {
     "device_class": SensorDeviceClass.POWER,
     "state_class": SensorStateClass.MEASUREMENT,
@@ -103,7 +112,10 @@ SENSORS = [
         **POWER,
     ),
     EnergySensorDescription(
-        key="production", value_fn=lambda d: d.production, **POWER
+        key="production",
+        value_fn=lambda d: d.production,
+        attrs_fn=lambda d: {"stale": d.production_stale},
+        **POWER,
     ),
     EnergySensorDescription(
         key="grid_power",
@@ -170,7 +182,11 @@ SENSORS = [
     *(_savings(period) for period in PERIODS),
     *(
         EnergySensorDescription(
-            key=f"{load}_status", load=load, value_fn=_status(load), **STATUS
+            key=f"{load}_status",
+            load=load,
+            value_fn=_status(load),
+            attrs_fn=_wh_night_attrs if load == LOAD_WATER_HEATER else None,
+            **STATUS,
         )
         for load in LOADS
     ),

@@ -173,11 +173,44 @@ def period_start(day: date, period: str) -> date:
     raise ValueError(f"Période inconnue : {period}")
 
 
-def available_power(grid_power: float | None, loads: list[Load]) -> float | None:
-    """Puissance disponible si aucune charge pilotée ne tournait."""
+def import_only_grid_power(
+    measured: float,
+    consumption: float,
+    production: float,
+    threshold: float,
+) -> tuple[float, bool]:
+    """Puissance réseau d'un compteur qui ne mesure que le soutirage.
+
+    Retourne (puissance, estimée). Au-dessus de `threshold` le soutirage est
+    réel ; sinon on ignore la mesure (0 ≈ pas de soutirage, injection
+    inconnue) et on estime l'injection : min(0, consommation − production).
+    """
+    if measured > threshold:
+        return measured, False
+    return min(0.0, consumption - production), True
+
+
+def is_stale(age_s: float | None, limit_s: float) -> bool:
+    """Une mesure est périmée si on ne l'a jamais reçue ou si elle est trop vieille."""
+    return age_s is None or age_s > limit_s
+
+
+def available_power(
+    grid_power: float | None,
+    loads: list[Load],
+    production: float | None = None,
+) -> float | None:
+    """Puissance disponible si aucune charge pilotée ne tournait.
+
+    Si la production solaire est connue (et à jour), la puissance disponible
+    ne peut pas la dépasser : cela borne les excès dus à une estimation.
+    """
     if grid_power is None:
         return None
-    return -grid_power + sum(load.current_power for load in loads if load.is_on)
+    value = -grid_power + sum(load.current_power for load in loads if load.is_on)
+    if production is not None:
+        value = min(value, max(0.0, production))
+    return value
 
 
 def decide(
@@ -237,6 +270,26 @@ def decide(
         decisions[load.key] = Decision(want, reason)
 
     return decisions
+
+
+def skip_night_heating(
+    forecast_kwh: float | None,
+    factor: float,
+    threshold_kwh: float,
+    *,
+    skipped_previous_night: bool,
+    needed: bool = True,
+) -> bool:
+    """Faut-il sauter la chauffe de nuit du chauffe-eau pour attendre le soleil ?
+
+    Oui seulement si la fonction est activée (seuil > 0), qu'il reste de la
+    chauffe à faire, que la prévision corrigée (prévision × facteur) atteint le
+    seuil, et que la nuit précédente n'a pas déjà été sautée : sans sonde dans
+    le ballon, on ne prend jamais le risque de deux nuits sans chauffe.
+    """
+    if threshold_kwh <= 0 or forecast_kwh is None or skipped_previous_night or not needed:
+        return False
+    return forecast_kwh * factor >= threshold_kwh
 
 
 def pool_required_hours(

@@ -5,6 +5,18 @@ Fonctionnement de l'intégration : voir [README.md](README.md).
 Historique des interventions et tâches en attente : voir [HISTORIQUE.md](HISTORIQUE.md) ;
 le compléter à la fin de chaque série de travaux.
 
+## Préférences de communication
+
+- Répondre en français, de façon concise : l'essentiel, sans récapitulatifs ni répétitions.
+- Tableaux quand c'est utile ; poser une question seulement si la réponse change l'action.
+
+## Hypothèses retenues
+
+- La maison consomme 400 W en permanence (talon, `baseline_power`).
+- Contrat HP/HC, heures creuses 22h-6h, tarif identique toute l'année (pas de Tempo).
+- Tesla BLE actif seulement quand la voiture doit être chargée : `unavailable` est normal.
+- Linky : cos φ = 1 (W = VA).
+
 ## Installation de l'utilisateur
 
 Home Assistant : `https://homeassistant.example.com`, avec l'extension ESPHome Device Builder.
@@ -94,9 +106,13 @@ Les modèles ESPHome cités plus haut y sont, dans `linky/`, `madoka/` et `tesla
 ### Tableau de bord « Analyse énergie »
 
 - Tableau de bord en mode stockage (`url_path: energie-analyse`), reflété par
-  [examples/analyse.yaml](examples/analyse.yaml) : garder les deux synchronisés.
-- Groupe « Allumage des appareils » : chauffe-eau, piscine, clim bas, clim haut.
-  Jacuzzi et machine à laver en sont exclus, car leurs prises restent toujours allumées.
+  [examples/analyse.yaml](examples/analyse.yaml) : garder les deux synchronisés. Les noms
+  d'entités IzyPower y sont anonymisés (`izypower_cloud_maison`, `serie_…`) : adapter au vrai HA.
+- Groupe « Allumage des appareils » : chauffe-eau, piscine, clim bas, clim haut, imprimante 3D,
+  lampe de l'imprimante (`switch.prise_lampe_3dprinter`), prise dehors devant (pompe).
+  Jacuzzi, machine à laver et grille-pain en sont exclus, car leurs prises restent toujours allumées.
+- Graphiques de consommation : toutes les prises connectées avec mesure (y compris grille-pain).
+  La clim du haut (relais Madoka) n'a pas de mesure de puissance : seulement dans « Allumage ».
 - Une entité `climate` s'y affiche en courbe de température. Chaque clim passe donc par un
   capteur binaire (aide Modèle) : `binary_sensor.clim_bas_allumee` et
   `binary_sensor.clim_haut_allumee`, allumés quand la clim n'est pas `off`.
