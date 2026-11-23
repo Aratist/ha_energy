@@ -550,10 +550,101 @@ views:
       - entity: sensor.switch_pompe_puissance
         name: Pompe (interrupteur)
         color: '#8d6e63'
-      - entity: sensor.gestionnaire_d_energie_consommation
-        attribute: non_mesure
-        name: Sans capteur (voiture, cuisson)
+      - entity: sensor.recharge_voiture_estimee
+        name: Recharge voiture (estimée)
         color: '#7e57c2'
+      - entity: sensor.cuisine_estimee
+        name: Cuisine (estimée)
+        color: '#c2185b'
+  - type: grid
+    cards:
+    - type: heading
+      heading: Voiture et cuisine (estimées)
+      icon: mdi:car-electric
+    - type: markdown
+      content: 'Ces appareils n''ont pas de capteur : leur consommation est **déduite du Linky** (ce qu''il mesure
+        moins les appareils connus).
+
+
+        - **Recharge voiture** : entre 22 h et 6 h, quand ni le chauffe-eau ni la clim ne tournent, toute consommation
+        non expliquée d''au moins 1,5 kW.
+
+        - **Cuisine** : entre 12 h et 14 h et entre 18 h 30 et 20 h 30, quand la consommation non expliquée dépasse
+        3 kW (plaques, four).
+
+
+        Une recharge pendant que le chauffe-eau chauffe n''est pas comptée. Historique reconstitué depuis le 13
+        novembre.'
+      grid_options:
+        columns: full
+      text_only: true
+    - type: custom:apexcharts-card
+      grid_options:
+        columns: full
+      header:
+        show: true
+        title: Recharge voiture par nuit (kWh, 14 nuits)
+        show_states: false
+      graph_span: 14d
+      span:
+        end: day
+        offset: +12h
+      yaxis:
+      - min: 0
+        decimals: 0
+      apex_config:
+        chart:
+          height: 260
+        plotOptions:
+          bar:
+            borderRadius: 4
+            columnWidth: 70%
+        dataLabels:
+          enabled: true
+      series:
+      - entity: sensor.recharge_voiture_energie
+        name: Recharge voiture
+        type: column
+        color: '#7e57c2'
+        float_precision: 1
+        statistics:
+          type: change
+          period: hour
+          align: start
+        group_by:
+          func: sum
+          duration: 1d
+    - type: custom:apexcharts-card
+      grid_options:
+        columns: full
+      header:
+        show: true
+        title: Cuisine par jour (kWh, 14 jours)
+        show_states: false
+      graph_span: 14d
+      span:
+        end: day
+      yaxis:
+      - min: 0
+        decimals: 1
+      apex_config:
+        chart:
+          height: 260
+        plotOptions:
+          bar:
+            borderRadius: 4
+            columnWidth: 70%
+      series:
+      - entity: sensor.cuisine_energie
+        name: Cuisine
+        type: column
+        color: '#c2185b'
+        float_precision: 1
+        statistics:
+          type: change
+          period: day
+          align: start
+    column_span: 2
   - type: grid
     column_span: 2
     cards:
@@ -620,6 +711,12 @@ views:
       - entity: sensor.switch_pompe_consommation
         name: Pompe (interrupteur)
         color: '#8d6e63'
+      - entity: sensor.recharge_voiture_energie
+        name: Recharge voiture (estimée)
+        color: '#7e57c2'
+      - entity: sensor.cuisine_energie
+        name: Cuisine (estimée)
+        color: '#c2185b'
   - type: grid
     cards:
     - type: heading
@@ -681,6 +778,12 @@ views:
       - entity: sensor.switch_pompe_consommation
         name: Pompe (interrupteur)
         color: '#8d6e63'
+      - entity: sensor.recharge_voiture_energie
+        name: Recharge voiture (estimée)
+        color: '#7e57c2'
+      - entity: sensor.cuisine_energie
+        name: Cuisine (estimée)
+        color: '#c2185b'
   - type: grid
     cards:
     - type: heading

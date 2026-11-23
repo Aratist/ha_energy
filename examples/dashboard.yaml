@@ -68,14 +68,12 @@ views:
     - type: custom:mushroom-template-card
       primary: Appareils sans capteur
       secondary: '{% set u=state_attr(''sensor.gestionnaire_d_energie_consommation'',''non_mesure'')|float(0) %}{%
-        set h=now().hour+now().minute/60 %}{% set hc=is_state(''sensor.gestionnaire_d_energie_tarif_actuel'',''offpeak'')
-        %}{% if u < 300 %}Rien de notable : tout ce qui consomme est mesuré.{% elif u >= 2500 and hc %}{{ u|round(-2)|int
-        }} W · sans doute la recharge des voitures{% elif (11.5 <= h < 14.5) or (18 <= h < 21) %}{{ u|round(-2)|int
-        }} W · sans doute la cuisson (plaques ou four){% elif u >= 2500 %}{{ u|round(-2)|int }} W · gros appareil
-        : four, plaques ou recharge d''une voiture{% else %}{{ u|round(-2)|int }} W · petits appareils non mesurés{%
-        endif %}'
-      icon: '{{ ''mdi:car-electric'' if state_attr(''sensor.gestionnaire_d_energie_consommation'',''non_mesure'')|float(0)
-        >= 2500 and is_state(''sensor.gestionnaire_d_energie_tarif_actuel'',''offpeak'') else ''mdi:stove'' if state_attr(''sensor.gestionnaire_d_energie_consommation'',''non_mesure'')|float(0)
+        set car=states(''sensor.recharge_voiture_estimee'')|float(0) %}{% set kit=states(''sensor.cuisine_estimee'')|float(0)
+        %}{% if car > 0 %}Recharge voiture : {{ car|round(-2)|int }} W{% elif kit > 0 %}Cuisine : {{ kit|round(-2)|int
+        }} W{% elif u < 300 %}Rien de notable : tout ce qui consomme est mesuré.{% else %}{{ u|round(-2)|int }}
+        W non attribués (four, plaques hors repas, petits appareils…){% endif %}'
+      icon: '{{ ''mdi:car-electric'' if states(''sensor.recharge_voiture_estimee'')|float(0) > 0 else ''mdi:stove''
+        if states(''sensor.cuisine_estimee'')|float(0) > 0 else ''mdi:help-circle-outline'' if state_attr(''sensor.gestionnaire_d_energie_consommation'',''non_mesure'')|float(0)
         >= 300 else ''mdi:check-circle-outline'' }}'
       icon_color: '{{ ''deep-purple'' if state_attr(''sensor.gestionnaire_d_energie_consommation'',''non_mesure'')|float(0)
         >= 300 else ''disabled'' }}'

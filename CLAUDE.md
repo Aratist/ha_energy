@@ -20,6 +20,11 @@ le compléter à la fin de chaque série de travaux.
   continu) ; plaques électriques entre 12 h et 14 h et entre 18 h 30 et 20 h 30 (quelques
   minutes, même puissance) ; four 1 à 2 h. `energy_manager` les déduit du Linky (attribut
   `non_mesure` de la consommation).
+- Aides Modèle qui en découlent (W) et leurs compteurs Intégrale (kWh), aussi dans le tableau
+  Énergie : `sensor.recharge_voiture_estimee` / `_energie` = non mesuré ≥ 1,5 kW entre 22 h et
+  6 h quand ni le chauffe-eau (> 100 W) ni la clim (bas > 100 W, ou haut allumée) ne tournent ;
+  `sensor.cuisine_estimee` / `_energie` = non mesuré > 3 kW entre 12 h-14 h et 18 h 30-20 h 30.
+  Historique reconstitué depuis le 13 novembre 2026 (statistiques 5 min).
 
 ## Installation de l'utilisateur
 
