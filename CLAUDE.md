@@ -88,7 +88,11 @@ sans couper DTR/RTS redémarre la carte et interrompt un appairage en cours.
 - Le module du compteur ouvre son propre point d'accès « Linky TIC » sur le canal 6
   (mot de passe `linky_tic_ap_mdp`) : serveur web sur http://192.168.4.1, près du compteur.
 - `linky.yaml` (ancienne configuration Wi-Fi + MQTT du C3) est archivé dans ESPHome Builder.
-- Le tableau Énergie utilise les statistiques de l'intégration cloud `linky`, pas ce module.
+- Tableau Énergie de HA : réseau = statistiques de l'application Linky (Enedis, J-1, prix HP/HC
+  dans ses options : 0,175176 / 0,132024, HC 22h-6h) ; injection = estimation
+  `sensor.gestionnaire_d_energie_injection_du_jour` (revente 0 €) ; solaire = production du jour
+  IzyPower + Forecast.Solar ; 10 appareils mesurés. `sensor.linky_energie_soutiree` (ancien module)
+  est mort : ne pas le remettre.
 
 ### Tesla : relais Bluetooth (appairage en cours)
 
