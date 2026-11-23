@@ -88,11 +88,14 @@ sans couper DTR/RTS redémarre la carte et interrompt un appairage en cours.
 - Le module du compteur ouvre son propre point d'accès « Linky TIC » sur le canal 6
   (mot de passe `linky_tic_ap_mdp`) : serveur web sur http://192.168.4.1, près du compteur.
 - `linky.yaml` (ancienne configuration Wi-Fi + MQTT du C3) est archivé dans ESPHome Builder.
-- Tableau Énergie de HA : réseau = statistiques de l'application Linky (Enedis, J-1, prix HP/HC
-  dans ses options : 0,175176 / 0,132024, HC 22h-6h) ; injection = estimation
-  `sensor.gestionnaire_d_energie_injection_du_jour` (revente 0 €) ; solaire = production du jour
-  IzyPower + Forecast.Solar ; 10 appareils mesurés. `sensor.linky_energie_soutiree` (ancien module)
-  est mort : ne pas le remettre.
+- Tableau Énergie de HA : réseau = module Linky local en temps réel, via l'aide Intégrale
+  `sensor.linky_energie_soutiree_reseau` (kWh, intègre `sensor.puissance_soutiree_reseau`), prix
+  `sensor.prix_electricite_actuel` (aide Modèle : `input_number.prix_kwh_heures_creuses` /
+  `_pleines` selon `binary_sensor.heures_creuses` ; ces aides servent, ne pas les supprimer) ;
+  injection = estimation `sensor.gestionnaire_d_energie_injection_du_jour` (revente 0 €) ;
+  solaire = production du jour IzyPower + Forecast.Solar ; 10 appareils mesurés.
+  L'application Linky (Enedis, J-1) importe toujours `linky:<PRM>` (prix HP/HC à jour) mais
+  n'est plus utilisée par le tableau. `sensor.linky_energie_soutiree` (ancien module) est mort.
 
 ### Tesla : relais Bluetooth (appairage en cours)
 
@@ -135,8 +138,9 @@ Les modèles ESPHome cités plus haut y sont, dans `linky/`, `madoka/` et `tesla
 - Tableau de pilotage « Gestion énergie » (`url_path: gestion-energie`), reflété par
   [examples/dashboard.yaml](examples/dashboard.yaml) : phrase d'état en clair, appareils pilotés
   avec la raison de chaque décision, bilan du jour, demain, Linky. Il n'utilise que les entités de
-  `energy_manager` ; les anciennes aides (`input_number.consommation_de_base_maison`,
-  `sensor.surplus_solaire_disponible`…) ne servent plus à rien.
+  `energy_manager` ; `input_number.consommation_de_base_maison`, `puissance_recharge_voiture`,
+  `temperature_minimale_bas`, `input_datetime.fin_piscine_journee` et
+  `sensor.surplus_solaire_disponible` ne servent plus à rien.
 - Les compteurs « du jour » de `energy_manager` (soutirage, coût, économie, chauffe, filtration…)
   repartent de zéro **à 6 h**, pas à minuit. Graphique par jour tiré de l'historique :
   `group_by: max 1d` avec `span: {end: day, offset: +6h}`. Depuis les statistiques
