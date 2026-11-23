@@ -198,6 +198,16 @@ def import_only_grid_power(
     return min(0.0, consumption - production), True
 
 
+def unmeasured_power(estimate: float, grid_import: float, production: float) -> float:
+    """Puissance des appareils non mesurés (voiture, plaques, four…).
+
+    Quand le compteur mesure un vrai soutirage, la maison consomme au moins
+    soutirage + production : ce que l'estimation n'explique pas vient
+    d'appareils sans capteur.
+    """
+    return max(0.0, grid_import + max(0.0, production) - estimate)
+
+
 def is_stale(age_s: float | None, limit_s: float) -> bool:
     """Une mesure est périmée si on ne l'a jamais reçue ou si elle est trop vieille."""
     return age_s is None or age_s > limit_s

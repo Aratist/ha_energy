@@ -109,7 +109,10 @@ SENSORS = [
     EnergySensorDescription(
         key="consumption",
         value_fn=lambda d: None if d.consumption is None else round(d.consumption),
-        attrs_fn=lambda d: {"source": "estimated" if d.consumption_estimated else "measured"},
+        attrs_fn=lambda d: {
+            "source": "estimated" if d.consumption_estimated else "measured",
+            "non_mesure": round(d.unmeasured),
+        },
         **POWER,
     ),
     EnergySensorDescription(

@@ -361,3 +361,10 @@ def test_climate_boost_waits_below_start_fraction():
     climate = load("climate", start_fraction=engine.CLIMATE_START_FRACTION)
     assert not run([climate], grid=-700, k=0.25)["climate"].on  # 600 < 700
     assert run([climate], grid=-800, k=0.25)["climate"].on
+
+
+def test_unmeasured_power_from_real_import():
+    # 8500 W soutirés, 0 W de solaire, 3700 W connus : 4800 W sans capteur.
+    assert engine.unmeasured_power(3700, 8500, 0) == 4800
+    # Soutirage + production inférieurs à l'estimation : rien à ajouter.
+    assert engine.unmeasured_power(1500, 300, 800) == 0

@@ -16,6 +16,10 @@ le compléter à la fin de chaque série de travaux.
 - Contrat HP/HC, heures creuses 22h-6h, tarif identique toute l'année (pas de Tempo).
 - Tesla BLE actif seulement quand la voiture doit être chargée : `unavailable` est normal.
 - Linky : cos φ = 1 (W = VA).
+- Appareils sans capteur, reconnus à leur profil : recharge des voitures la nuit (≈ 4 kW en
+  continu) ; plaques électriques entre 12 h et 14 h et entre 18 h 30 et 20 h 30 (quelques
+  minutes, même puissance) ; four 1 à 2 h. `energy_manager` les déduit du Linky (attribut
+  `non_mesure` de la consommation).
 
 ## Installation de l'utilisateur
 

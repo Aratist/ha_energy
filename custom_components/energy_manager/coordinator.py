@@ -130,6 +130,7 @@ from .engine import (
     in_window,
     period_start,
     is_stale,
+    unmeasured_power,
     night_skip_threshold,
     pool_required_hours,
     season_for,
@@ -157,6 +158,7 @@ class EnergyData:
     production_stale: bool = False
     consumption: float | None = None
     consumption_estimated: bool = False
+    unmeasured: float = 0.0  # W d'appareils sans capteur, déduits du compteur
     appliances_power: float = 0.0
     appliance_power: dict[str, float] = field(default_factory=dict)
     grid_power: float | None = None
@@ -349,6 +351,13 @@ class EnergyManagerCoordinator(DataUpdateCoordinator[EnergyData]):
         if data.grid_power is None:
             data.grid_power = data.consumption - (data.production or 0.0)
             data.grid_estimated = True
+        elif data.consumption_estimated and not data.grid_estimated:
+            # Soutirage réel supérieur à l'estimation : des appareils sans
+            # capteur tournent (voiture, plaques, four…). On les ajoute.
+            data.unmeasured = unmeasured_power(
+                data.consumption, data.grid_power, data.production or 0.0
+            )
+            data.consumption += data.unmeasured
 
         # --- Décision ----------------------------------------------------
         managed: list[Load] = []
