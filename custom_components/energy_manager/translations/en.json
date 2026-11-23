@@ -97,9 +97,11 @@
           "water_heater_min_hours": "Water heater: guaranteed daily runtime",
           "pool_nominal_power": "Pool: pump power",
           "pool_hours": "Pool: daily filtration (without temperature sensor)",
+          "pool_winter_hours": "Pool: daily filtration in winter (without sensor)",
           "pool_min_hours": "Pool: minimum filtration",
           "pool_max_hours": "Pool: maximum filtration",
           "climate_boost_power": "Climate: estimated boost power",
+          "climate_auto_start": "Climate: turn it on when off and surplus is sufficient",
           "margin": "Surplus safety margin",
           "max_import": "Tolerated grid import before stopping a device",
           "min_on_minutes": "Minimum on time",
@@ -108,6 +110,8 @@
           "forecast_factor": "Solar forecast correction factor"
         },
         "data_description": {
+          "pool_winter_hours": "Reduced filtration is enough in cold water. Applies from November to March, or when the season is forced to winter.",
+          "climate_auto_start": "Heating in winter, cooling in summer. The unit is turned off when the surplus ends or the room reaches the end of the comfort band. Turning it off by hand suspends this feature until the next day.",
           "water_heater_forecast_skip_kwh": "Corrected forecast in kWh. 0 = disabled. Never two skipped nights in a row.",
           "forecast_factor": "The forecast is multiplied by this factor (0.7 if it overestimates by about 30%)."
         }
@@ -224,9 +228,11 @@
           "water_heater_min_hours": "Water heater: guaranteed daily runtime",
           "pool_nominal_power": "Pool: pump power",
           "pool_hours": "Pool: daily filtration (without temperature sensor)",
+          "pool_winter_hours": "Pool: daily filtration in winter (without sensor)",
           "pool_min_hours": "Pool: minimum filtration",
           "pool_max_hours": "Pool: maximum filtration",
           "climate_boost_power": "Climate: estimated boost power",
+          "climate_auto_start": "Climate: turn it on when off and surplus is sufficient",
           "margin": "Surplus safety margin",
           "max_import": "Tolerated grid import before stopping a device",
           "min_on_minutes": "Minimum on time",
@@ -235,6 +241,8 @@
           "forecast_factor": "Solar forecast correction factor"
         },
         "data_description": {
+          "pool_winter_hours": "Reduced filtration is enough in cold water. Applies from November to March, or when the season is forced to winter.",
+          "climate_auto_start": "Heating in winter, cooling in summer. The unit is turned off when the surplus ends or the room reaches the end of the comfort band. Turning it off by hand suspends this feature until the next day.",
           "water_heater_forecast_skip_kwh": "Corrected forecast in kWh. 0 = disabled. Never two skipped nights in a row.",
           "forecast_factor": "The forecast is multiplied by this factor (0.7 if it overestimates by about 30%)."
         }

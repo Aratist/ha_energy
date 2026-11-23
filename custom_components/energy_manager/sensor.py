@@ -80,6 +80,7 @@ def _wh_night_attrs(data: EnergyData) -> dict[str, Any]:
         "nuit_sautee": night.get("skip", False),
         "prevision_demain_kwh": night.get("forecast_kwh"),
         "prevision_corrigee_kwh": night.get("corrected_kwh"),
+        "seuil_kwh": night.get("threshold_kwh"),
     }
 
 

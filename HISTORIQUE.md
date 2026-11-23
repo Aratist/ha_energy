@@ -4,6 +4,18 @@ Journal des travaux faits avec Claude, pour reprendre sans relire les anciennes 
 L'état à jour de l'installation est dans [CLAUDE.md](CLAUDE.md) ; ce fichier dit comment on y
 est arrivé et ce qui reste à faire. Aucun secret ici : ils sont dans `secrets.yaml` d'ESPHome.
 
+## 23 novembre 2026 : chauffage d'abord en hiver
+
+Analyse de 30 jours de mesures : production de 1 à 9 kWh/jour (pointe 1,5 à 1,9 kW), surplus
+perdu jusqu'à 4 kWh les jours de soleil, clim éteinte 80 % du temps donc jamais boostée, seuil
+de boost (1100 W disponibles) atteint 0 à 90 min/jour, piscine filtrée 6 h/jour.
+
+- Clim : option « allumer la clim éteinte sur surplus » (activée dans HA) ; boost dès 70 % de
+  couverture solaire (50 % pour continuer) ; arrêt quand la pièce atteint le bout de la bande
+  de confort ; cycles d'au moins 20 min de marche et 10 min d'arrêt.
+- Piscine : durée de filtration d'hiver (3 h) distincte de celle d'été (6 h).
+- Chauffe-eau : en hiver, la nuit n'est sautée que si la prévision couvre aussi 3 h de chauffage.
+
 ## 5 novembre 2026
 
 ### Module Linky : passage du Wi-Fi à l'ESP-NOW

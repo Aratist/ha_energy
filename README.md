@@ -52,14 +52,18 @@ Toutes les 30 s :
 3. **Priorités selon la saison.** Hiver (novembre à mars, ou forcé via le sélecteur *Saison*) :
    chauffage > chauffe-eau > piscine. Été : chauffe-eau > piscine > clim.
 4. **Confort.** En hiver, la consigne du chauffage est maintenue dans la bande ; quand le
-   solaire couvre entièrement la puissance de la clim, la consigne monte au maximum de la
-   bande pour stocker de la chaleur avant la soirée en heures pleines. En été, même principe
-   inversé (la clim descend au minimum de la bande sur surplus). Une consigne changée à la
-   main pendant un boost est respectée ; une clim éteinte n'est jamais rallumée.
+   solaire couvre au moins 70 % de la puissance de la clim (50 % pour continuer), la consigne
+   monte au maximum de la bande pour stocker de la chaleur avant la soirée en heures pleines.
+   En été, même principe inversé (la clim descend au minimum de la bande sur surplus). Le
+   boost s'arrête quand la pièce atteint le bout de la bande : le surplus passe alors au
+   chauffe-eau puis à la piscine. Une consigne changée à la main pendant un boost est respectée.
+   Option **« allumer la clim éteinte sur surplus »** : le gestionnaire l'allume (chauffage en
+   hiver, froid en été) et la rééteint à la fin du surplus ; l'éteindre à la main suspend
+   cette fonction jusqu'au cycle suivant. Sans l'option, une clim éteinte n'est jamais rallumée.
 5. **Chauffe-eau** : avec un capteur de puissance, une consommation nulle pendant 10 min
    alors qu'il est alimenté signifie « ballon chaud » ; en heures creuses ce signal est
    ignoré (le ballon a pu être vidé le soir, et le thermostat ne chauffe pas pour rien). **Piscine** : durée de filtration =
-   température de l'eau / 2 (bornée), ou durée fixe sans sonde.
+   température de l'eau / 2 (bornée), ou durée fixe sans sonde (durée réduite en hiver).
 6. **Anti court-cycle** : durées minimales de marche/arrêt, et un équipement en marche n'est
    coupé que si le soutirage dépasse le seuil toléré.
 
@@ -70,7 +74,8 @@ Le cycle journalier commence à la fin des heures creuses.
 son rattrapage de nuit quand la prévision corrigée (prévision × facteur, 0,7 par défaut)
 atteint le seuil : il attend le soleil. La décision est prise au début des heures creuses et
 visible dans les attributs de l'état du chauffe-eau. Sans sonde dans le ballon, jamais deux
-nuits sautées de suite.
+nuits sautées de suite. En hiver le chauffage est servi avant le chauffe-eau : le seuil est
+relevé de 3 h de boost de la clim.
 
 ## Entités créées
 

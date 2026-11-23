@@ -317,3 +317,47 @@ def test_never_two_nights_in_a_row():
 
 def test_no_skip_when_nothing_to_heat():
     assert not skip(20.0, needed=False)
+
+
+# --- Saisons : chauffage d'abord en hiver ----------------------------------
+
+
+def test_winter_skip_threshold_adds_heating_reserve():
+    # Hiver : 4 kWh + 3 h de boost à 1000 W = 7 kWh ; été : seuil inchangé.
+    assert engine.night_skip_threshold(4.0, winter=True, climate_boost_w=1000) == 7.0
+    assert engine.night_skip_threshold(4.0, winter=False, climate_boost_w=1000) == 4.0
+
+
+def test_winter_skip_threshold_stays_disabled():
+    assert engine.night_skip_threshold(0, winter=True, climate_boost_w=1000) == 0
+
+
+def test_climate_boost_done_at_end_of_band():
+    done = engine.climate_boost_done
+    assert done(23.0, 19, 23, winter=True, boosting=True)
+    assert not done(22.8, 19, 23, winter=True, boosting=True)
+    assert done(24.0, 24, 27, winter=False, boosting=True)
+    assert not done(None, 19, 23, winter=True, boosting=False)
+
+
+def test_climate_boost_restart_needs_gap():
+    done = engine.climate_boost_done
+    # Arrêté à 23 °C : ne repart pas à 22,8 °C, seulement sous 22,5 °C.
+    assert done(22.8, 19, 23, winter=True, boosting=False)
+    assert not done(22.4, 19, 23, winter=True, boosting=False)
+    assert done(24.3, 24, 27, winter=False, boosting=False)
+
+
+def test_winter_heating_served_before_pool_and_takes_it_over():
+    # 900 W de surplus, piscine (800 W) déjà en marche : la clim (70 % de
+    # 1000 W) passe devant et la piscine s'arrête faute de budget.
+    climate = load("climate", start_fraction=engine.CLIMATE_START_FRACTION)
+    pool = load("pool", 800, on=True)
+    result = run([climate, pool], grid=-100, k=0.25)
+    assert result["climate"].on and not result["pool"].on
+
+
+def test_climate_boost_waits_below_start_fraction():
+    climate = load("climate", start_fraction=engine.CLIMATE_START_FRACTION)
+    assert not run([climate], grid=-700, k=0.25)["climate"].on  # 600 < 700
+    assert run([climate], grid=-800, k=0.25)["climate"].on

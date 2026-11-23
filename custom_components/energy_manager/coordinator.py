@@ -10,9 +10,12 @@ from typing import Any
 from homeassistant.components.climate import (
     ATTR_CURRENT_TEMPERATURE,
     ATTR_HVAC_ACTION,
+    ATTR_HVAC_MODE,
+    ATTR_HVAC_MODES,
     ATTR_MAX_TEMP,
     ATTR_MIN_TEMP,
     DOMAIN as CLIMATE_DOMAIN,
+    SERVICE_SET_HVAC_MODE,
     SERVICE_SET_TEMPERATURE,
     HVACAction,
     HVACMode,
@@ -48,6 +51,7 @@ from .const import (
     CONF_APPLIANCES,
     CONF_BASELINE,
     CONF_CLIMATE,
+    CONF_CLIMATE_AUTO_START,
     CONF_CLIMATE_POWER,
     CONF_CLIMATE_POWER_SENSOR,
     CONF_FORECAST_FACTOR,
@@ -70,6 +74,7 @@ from .const import (
     CONF_POOL_POWER,
     CONF_POOL_SWITCH,
     CONF_POOL_TEMP,
+    CONF_POOL_WINTER_HOURS,
     CONF_PRICE_EXPORT,
     CONF_PRICE_OFFPEAK,
     CONF_PRICE_OFFPEAK_SENSOR,
@@ -100,6 +105,8 @@ from .const import (
 )
 from .engine import (
     CLIMATE_KEEP_FRACTION,
+    CLIMATE_MIN_OFF,
+    CLIMATE_MIN_ON,
     CLIMATE_START_FRACTION,
     PERIODS,
     PRIORITY,
@@ -115,6 +122,7 @@ from .engine import (
     Tariff,
     available_power,
     clamp,
+    climate_boost_done,
     cycle_bounds,
     decide,
     estimate_consumption,
@@ -122,6 +130,7 @@ from .engine import (
     in_window,
     period_start,
     is_stale,
+    night_skip_threshold,
     pool_required_hours,
     season_for,
     skip_night_heating,
@@ -130,6 +139,8 @@ from .engine import (
 _LOGGER = logging.getLogger(__name__)
 
 STORAGE_VERSION = 1
+# Délai laissé à la clim pour refléter un allumage demandé par le gestionnaire.
+CLIMATE_SETTLE_S = 120
 SWITCH_CONF = {LOAD_WATER_HEATER: CONF_WH_SWITCH, LOAD_POOL: CONF_POOL_SWITCH}
 LOAD_CONF = {**SWITCH_CONF, LOAD_CLIMATE: CONF_CLIMATE}
 ACTIVE_ACTIONS = (HVACAction.HEATING, HVACAction.COOLING)
@@ -194,6 +205,10 @@ class EnergyManagerCoordinator(DataUpdateCoordinator[EnergyData]):
             "savings_start": dict.fromkeys(PERIODS),
             "climate_base": None,
             "climate_target": None,
+            # Clim allumée par le gestionnaire (elle était éteinte) ; et cycle
+            # pendant lequel l'allumage automatique est suspendu (arrêt manuel).
+            "climate_started": False,
+            "climate_no_start": None,
             "season": SEASON_AUTO,
             "auto": {AUTO_MASTER: True, **dict.fromkeys(LOADS, True)},
         }
@@ -520,7 +535,7 @@ class EnergyManagerCoordinator(DataUpdateCoordinator[EnergyData]):
         done = self._state["done"].get(LOAD_WATER_HEATER, False)
         load.done = done and not data.in_offpeak
         load.remaining_s = 0.0 if load.done else max(0.0, required - runtime)
-        if data.in_offpeak and self._skip_night(now, load.remaining_s > 0):
+        if data.in_offpeak and self._skip_night(now, load.remaining_s > 0, data.season):
             # Nuit sautée : pas de rattrapage, la chauffe attend le soleil.
             load.remaining_s = 0.0
         data.wh_night = dict(self._state.get("wh_night") or {})
@@ -528,18 +543,23 @@ class EnergyManagerCoordinator(DataUpdateCoordinator[EnergyData]):
         data.required_s[LOAD_WATER_HEATER] = required
         return load
 
-    def _skip_night(self, now: datetime, needed: bool) -> bool:
+    def _skip_night(self, now: datetime, needed: bool, season: str) -> bool:
         """Décision prise une fois par nuit (au début des heures creuses), puis
         conservée et sauvegardée jusqu'au cycle suivant."""
         night = self._state.get("wh_night")
         if not night or night.get("cycle") != self._state["cycle"]:
             forecast = self._read_float(self.conf.get(CONF_PV_FORECAST_TOMORROW))
+            threshold = night_skip_threshold(
+                self.conf[CONF_WH_FORECAST_SKIP_KWH],
+                winter=season == SEASON_WINTER and LOAD_CLIMATE in self.configured_loads,
+                climate_boost_w=self.conf[CONF_CLIMATE_POWER],
+            )
             # Décision prise après minuit (redémarrage…) : « demain » désigne
             # alors le jour suivant ; par prudence on ne saute pas.
             skip = now.hour >= 12 and skip_night_heating(
                 forecast,
                 self.conf[CONF_FORECAST_FACTOR],
-                self.conf[CONF_WH_FORECAST_SKIP_KWH],
+                threshold,
                 skipped_previous_night=self._state.get("wh_skipped_last", False),
                 needed=needed,
             )
@@ -547,6 +567,7 @@ class EnergyManagerCoordinator(DataUpdateCoordinator[EnergyData]):
                 "cycle": self._state["cycle"],
                 "skip": skip,
                 "forecast_kwh": forecast,
+                "threshold_kwh": threshold,
                 "corrected_kwh": None
                 if forecast is None
                 else round(forecast * self.conf[CONF_FORECAST_FACTOR], 2),
@@ -564,7 +585,9 @@ class EnergyManagerCoordinator(DataUpdateCoordinator[EnergyData]):
         runtime = self._add_runtime(LOAD_POOL, elapsed if load.is_on else 0.0)
         required = 3600 * pool_required_hours(
             self._read_float(self.conf.get(CONF_POOL_TEMP)),
-            self.conf[CONF_POOL_HOURS],
+            self.conf[CONF_POOL_WINTER_HOURS]
+            if data.season == SEASON_WINTER
+            else self.conf[CONF_POOL_HOURS],
             self.conf[CONF_POOL_MIN_HOURS],
             self.conf[CONF_POOL_MAX_HOURS],
         )
@@ -615,19 +638,54 @@ class EnergyManagerCoordinator(DataUpdateCoordinator[EnergyData]):
         consumption = measured if measured is not None else (nominal if active else 0.0)
         data.indoor_temperature = self._indoor_temperature(state)
 
-        if state is None or not self._climate_mode_ok(state, data.season):
+        if state is None:
             return consumption, None
+        off = state.state == HVACMode.OFF
         setpoint = state.attributes.get(ATTR_TEMPERATURE)
-        if setpoint is None:
+        target = self._state["climate_target"]
+        started = self._state.get("climate_started", False)
+
+        if target is not None:
+            # Après un allumage par le gestionnaire, l'état peut tarder à suivre.
+            previous = self._observed.get(LOAD_CLIMATE)
+            settled = (
+                not started
+                or previous is None
+                or _seconds_between(previous[1], now) > CLIMATE_SETTLE_S
+            )
+            if off and settled:
+                # Éteinte à la main pendant le boost : on rend la main, et on
+                # ne la rallume plus de nous-mêmes avant le prochain cycle.
+                if started:
+                    self._state["climate_no_start"] = self._state["cycle"]
+                self._release_climate()
+                target = None
+            elif (
+                not off
+                and settled
+                and setpoint is not None
+                and abs(float(setpoint) - target) > 0.25
+            ):
+                # Consigne modifiée à la main pendant le boost : on la respecte
+                # (et la clim reste allumée, l'utilisateur a repris la main).
+                _LOGGER.debug("Consigne clim modifiée manuellement, boost abandonné")
+                self._release_climate()
+                target = None
+
+        boosting = target is not None
+        if not boosting:
+            if off:
+                if not (
+                    self.conf[CONF_CLIMATE_AUTO_START]
+                    and self._state.get("climate_no_start") != self._state["cycle"]
+                ):
+                    return consumption, None
+            elif setpoint is None:
+                return consumption, None
+        if not off and not self._climate_mode_ok(state, data.season):
             return consumption, None
 
-        target = self._state["climate_target"]
-        if target is not None and abs(float(setpoint) - target) > 0.25:
-            # Consigne modifiée à la main pendant le boost : on la respecte.
-            _LOGGER.debug("Consigne clim modifiée manuellement, boost abandonné")
-            self._state.update(climate_base=None, climate_target=None)
-            target = None
-        boosting = target is not None
+        low, high = self._comfort_band(data.season)
         return consumption, Load(
             key=LOAD_CLIMATE,
             nominal_power=nominal,
@@ -636,11 +694,24 @@ class EnergyManagerCoordinator(DataUpdateCoordinator[EnergyData]):
             else 0.0,
             is_on=boosting,
             seconds_since_change=self._since_change(LOAD_CLIMATE, boosting, now),
-            min_on_s=self.conf[CONF_MIN_ON] * 60,
-            min_off_s=self.conf[CONF_MIN_OFF] * 60,
+            min_on_s=max(self.conf[CONF_MIN_ON], CLIMATE_MIN_ON) * 60,
+            min_off_s=max(self.conf[CONF_MIN_OFF], CLIMATE_MIN_OFF) * 60,
+            # Pièce déjà au bout de la bande de confort : le surplus va aux
+            # charges suivantes (chauffe-eau, piscine).
+            done=climate_boost_done(
+                data.indoor_temperature,
+                low,
+                high,
+                winter=data.season == SEASON_WINTER,
+                boosting=boosting,
+            ),
             start_fraction=CLIMATE_START_FRACTION,
             keep_fraction=CLIMATE_KEEP_FRACTION,
         )
+
+    def _release_climate(self) -> None:
+        """Oublie le boost sans toucher à la clim (l'utilisateur a repris la main)."""
+        self._state.update(climate_base=None, climate_target=None, climate_started=False)
 
     async def _enforce_comfort(self, data: EnergyData, managed: bool) -> None:
         """Maintient la consigne dans la bande de confort hors boost, et
@@ -652,6 +723,8 @@ class EnergyManagerCoordinator(DataUpdateCoordinator[EnergyData]):
             return
         if not managed or state is None or self._state["climate_target"] is not None:
             return
+        if state.state == HVACMode.OFF:
+            return  # éteinte : rien à borner, on ne touche pas à sa consigne
 
         low, high = self._comfort_band(data.season)
         setpoint = state.attributes.get(ATTR_TEMPERATURE)
@@ -693,45 +766,65 @@ class EnergyManagerCoordinator(DataUpdateCoordinator[EnergyData]):
         )
 
     async def _set_climate_boost(self, on: bool, state: State | None) -> bool:
+        """Lance ou arrête le boost. Si la clim était éteinte, le gestionnaire
+        l'allume (chauffage en hiver, froid en été) puis la rééteint à la fin."""
         if state is None:
             if not on:
-                self._state.update(climate_base=None, climate_target=None)
+                self._release_climate()
             return False
 
         season = season_for(dt_util.now().month, self.season_mode)
+        winter = season == SEASON_WINTER
         low, high = self._comfort_band(season)
+        entity = {ATTR_ENTITY_ID: state.entity_id}
+        raw = state.attributes.get(ATTR_TEMPERATURE)
+        is_off = state.state == HVACMode.OFF
+
         if on:
-            base = clamp(float(state.attributes[ATTR_TEMPERATURE]), low, high)
             # Chauffer jusqu'au haut de la bande en hiver, refroidir jusqu'au
             # bas en été : on stocke l'énergie solaire dans la maison.
-            target = high if season == SEASON_WINTER else low
+            target = high if winter else low
             target = clamp(
                 target,
                 state.attributes.get(ATTR_MIN_TEMP, target),
                 state.attributes.get(ATTR_MAX_TEMP, target),
             )
-            if target == base:
-                # Consigne déjà au bout de la bande : rien à envoyer, mais le
-                # boost est effectif (la clim consomme sur le solaire).
-                self._state.update(climate_base=base, climate_target=target)
-                return True
-        else:
-            base, target = self._state["climate_base"], None
-            if base is None:
-                self._state["climate_target"] = None
-                return True
-            base = clamp(base, low, high)
+            base = target if raw is None else clamp(float(raw), low, high)
+            if is_off:
+                mode = HVACMode.HEAT if winter else HVACMode.COOL
+                if mode not in (state.attributes.get(ATTR_HVAC_MODES) or [mode]):
+                    return False
+                if not await self._call(
+                    CLIMATE_DOMAIN, SERVICE_SET_HVAC_MODE, {**entity, ATTR_HVAC_MODE: mode}
+                ):
+                    return False
+            # Consigne déjà au bout de la bande : rien à envoyer, mais le boost
+            # est effectif (la clim consomme sur le solaire).
+            ok = (raw is not None and float(raw) == target) or await self._call(
+                CLIMATE_DOMAIN, SERVICE_SET_TEMPERATURE, {**entity, ATTR_TEMPERATURE: target}
+            )
+            if ok or is_off:
+                self._state.update(
+                    climate_base=base, climate_target=target, climate_started=is_off
+                )
+            return ok or is_off
 
-        ok = await self._call(
+        base = self._state["climate_base"]
+        started = self._state.get("climate_started", False)
+        if base is None:
+            self._release_climate()
+            return True
+        await self._call(
             CLIMATE_DOMAIN,
             SERVICE_SET_TEMPERATURE,
-            {ATTR_ENTITY_ID: state.entity_id, ATTR_TEMPERATURE: target if on else base},
+            {**entity, ATTR_TEMPERATURE: clamp(base, low, high)},
         )
-        if ok or not on:
-            self._state.update(
-                climate_base=base if on else None, climate_target=target if on else None
+        if started and not is_off:
+            await self._call(
+                CLIMATE_DOMAIN, SERVICE_SET_HVAC_MODE, {**entity, ATTR_HVAC_MODE: HVACMode.OFF}
             )
-        return ok
+        self._release_climate()
+        return True
 
     # --- Bilan -------------------------------------------------------------
 

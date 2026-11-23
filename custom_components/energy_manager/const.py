@@ -42,6 +42,8 @@ CONF_POOL_POWER = "pool_power"
 CONF_POOL_TEMP = "pool_temperature"
 CONF_POOL_NOMINAL = "pool_nominal_power"
 CONF_POOL_HOURS = "pool_hours"
+# Durée fixe de filtration en hiver (hivernage actif) ; sert sans sonde.
+CONF_POOL_WINTER_HOURS = "pool_winter_hours"
 CONF_POOL_MIN_HOURS = "pool_min_hours"
 CONF_POOL_MAX_HOURS = "pool_max_hours"
 
@@ -49,6 +51,9 @@ CONF_POOL_MAX_HOURS = "pool_max_hours"
 CONF_CLIMATE = "climate"
 CONF_CLIMATE_POWER_SENSOR = "climate_power_sensor"
 CONF_CLIMATE_POWER = "climate_boost_power"
+# Allumer la clim (chauffage en hiver, froid en été) quand elle est éteinte et
+# que le surplus solaire suffit, puis l'éteindre à la fin du surplus.
+CONF_CLIMATE_AUTO_START = "climate_auto_start"
 CONF_INDOOR_TEMP = "indoor_temperature"
 
 # Appareils mesurés ou estimés (liste de dictionnaires)
@@ -102,9 +107,11 @@ DEFAULTS = {
     CONF_FORECAST_FACTOR: 0.7,
     CONF_POOL_NOMINAL: 800,
     CONF_POOL_HOURS: 6,
+    CONF_POOL_WINTER_HOURS: 3,
     CONF_POOL_MIN_HOURS: 2,
     CONF_POOL_MAX_HOURS: 14,
     CONF_CLIMATE_POWER: 1000,
+    CONF_CLIMATE_AUTO_START: False,
     CONF_PRICE_PEAK: 0.175176,
     CONF_PRICE_OFFPEAK: 0.132024,
     CONF_PRICE_EXPORT: 0.0,

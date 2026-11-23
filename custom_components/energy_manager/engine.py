@@ -56,10 +56,18 @@ PERIOD_MONTH = "month"
 PERIOD_YEAR = "year"
 PERIODS = (PERIOD_WEEK, PERIOD_MONTH, PERIOD_YEAR)
 
-# Le « boost » de la clim stocke de la chaleur pour le soir (heures pleines) :
-# il n'est rentable que couvert entièrement par le solaire.
-CLIMATE_START_FRACTION = 1.0
-CLIMATE_KEEP_FRACTION = 0.6
+# Le « boost » de la clim stocke de la chaleur (ou du frais) dans la maison pour
+# le soir, en heures pleines. Une partie se perd avant de servir : on estime que
+# 30 % au plus de l'énergie du boost peut venir du réseau sans surcoût. Le
+# démarrage exige donc 70 % de solaire ; une fois lancé, 50 % suffisent.
+CLIMATE_START_FRACTION = 0.7
+CLIMATE_KEEP_FRACTION = 0.5
+# Le boost s'arrête quand la pièce atteint le bout de la bande de confort, et ne
+# reprend qu'après un écart de cette valeur (°C).
+CLIMATE_RESTART_GAP = 0.5
+# Compresseur : cycles plus longs que pour une simple prise (minutes).
+CLIMATE_MIN_ON = 20
+CLIMATE_MIN_OFF = 10
 
 
 @dataclass(frozen=True)
@@ -290,6 +298,32 @@ def skip_night_heating(
     if threshold_kwh <= 0 or forecast_kwh is None or skipped_previous_night or not needed:
         return False
     return forecast_kwh * factor >= threshold_kwh
+
+
+def night_skip_threshold(
+    threshold_kwh: float, *, winter: bool, climate_boost_w: float, reserve_hours: float = 3.0
+) -> float:
+    """Seuil de prévision pour sauter la chauffe de nuit du chauffe-eau.
+
+    En hiver le surplus sert d'abord au chauffage : la prévision doit couvrir
+    en plus `reserve_hours` de boost de la clim, sinon le chauffe-eau, servi
+    après elle, ne trouverait pas de soleil le lendemain.
+    """
+    if threshold_kwh <= 0 or not winter:
+        return threshold_kwh
+    return threshold_kwh + climate_boost_w * reserve_hours / 1000
+
+
+def climate_boost_done(
+    temp: float | None, low: float, high: float, *, winter: bool, boosting: bool
+) -> bool:
+    """Le boost est-il inutile ? Oui quand la pièce a atteint le bout de la
+    bande de confort (haut en hiver, bas en été). Hystérésis : un boost arrêté
+    ne reprend qu'après un écart de CLIMATE_RESTART_GAP."""
+    if temp is None:
+        return False
+    gap = 0.0 if boosting else CLIMATE_RESTART_GAP
+    return temp >= high - gap if winter else temp <= low + gap
 
 
 def pool_required_hours(

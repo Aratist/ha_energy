@@ -97,9 +97,11 @@
           "water_heater_min_hours": "Chauffe-eau : durée minimale garantie par jour",
           "pool_nominal_power": "Piscine : puissance de la pompe",
           "pool_hours": "Piscine : filtration par jour (sans sonde de température)",
+          "pool_winter_hours": "Piscine : filtration par jour en hiver (sans sonde)",
           "pool_min_hours": "Piscine : filtration minimale",
           "pool_max_hours": "Piscine : filtration maximale",
           "climate_boost_power": "Clim : puissance estimée du boost",
+          "climate_auto_start": "Clim : l'allumer quand elle est éteinte et que le surplus suffit",
           "margin": "Marge de sécurité sur le surplus",
           "max_import": "Soutirage toléré avant arrêt d'un équipement",
           "min_on_minutes": "Durée minimale de marche",
@@ -108,10 +110,12 @@
           "forecast_factor": "Correction de la prévision solaire"
         },
         "data_description": {
+          "pool_winter_hours": "Hivernage actif : une filtration réduite suffit quand l'eau est froide. S'applique de novembre à mars, ou en saison « hiver » forcée.",
+          "climate_auto_start": "Chauffage en hiver, froid en été. La clim est éteinte à la fin du surplus ou quand la pièce atteint le bout de la bande de confort. L'éteindre à la main suspend cette fonction jusqu'au lendemain 6 h.",
           "water_heater_min_hours": "Si cette durée n'est pas atteinte grâce au soleil, le chauffe-eau est forcé en heures creuses. Un capteur de puissance permet de détecter que le ballon est chaud.",
           "pool_hours": "Avec une sonde, la durée suit la règle « température de l'eau / 2 ».",
           "max_import": "Hystérésis : un équipement en marche n'est coupé que si le soutirage dépasse cette valeur.",
-          "water_heater_forecast_skip_kwh": "Prévision corrigée en kWh. 0 = désactivé. Jamais deux nuits sautées de suite.",
+          "water_heater_forecast_skip_kwh": "Prévision corrigée en kWh. 0 = désactivé. Jamais deux nuits sautées de suite. En hiver, le seuil est relevé de 3 h de boost de la clim, servie en premier.",
           "forecast_factor": "La prévision est multipliée par ce facteur (0,7 si elle surestime d'environ 30 %)."
         }
       }
@@ -227,9 +231,11 @@
           "water_heater_min_hours": "Chauffe-eau : durée minimale garantie par jour",
           "pool_nominal_power": "Piscine : puissance de la pompe",
           "pool_hours": "Piscine : filtration par jour (sans sonde de température)",
+          "pool_winter_hours": "Piscine : filtration par jour en hiver (sans sonde)",
           "pool_min_hours": "Piscine : filtration minimale",
           "pool_max_hours": "Piscine : filtration maximale",
           "climate_boost_power": "Clim : puissance estimée du boost",
+          "climate_auto_start": "Clim : l'allumer quand elle est éteinte et que le surplus suffit",
           "margin": "Marge de sécurité sur le surplus",
           "max_import": "Soutirage toléré avant arrêt d'un équipement",
           "min_on_minutes": "Durée minimale de marche",
@@ -238,10 +244,12 @@
           "forecast_factor": "Correction de la prévision solaire"
         },
         "data_description": {
+          "pool_winter_hours": "Hivernage actif : une filtration réduite suffit quand l'eau est froide. S'applique de novembre à mars, ou en saison « hiver » forcée.",
+          "climate_auto_start": "Chauffage en hiver, froid en été. La clim est éteinte à la fin du surplus ou quand la pièce atteint le bout de la bande de confort. L'éteindre à la main suspend cette fonction jusqu'au lendemain 6 h.",
           "water_heater_min_hours": "Si cette durée n'est pas atteinte grâce au soleil, le chauffe-eau est forcé en heures creuses. Un capteur de puissance permet de détecter que le ballon est chaud.",
           "pool_hours": "Avec une sonde, la durée suit la règle « température de l'eau / 2 ».",
           "max_import": "Hystérésis : un équipement en marche n'est coupé que si le soutirage dépasse cette valeur.",
-          "water_heater_forecast_skip_kwh": "Prévision corrigée en kWh. 0 = désactivé. Jamais deux nuits sautées de suite.",
+          "water_heater_forecast_skip_kwh": "Prévision corrigée en kWh. 0 = désactivé. Jamais deux nuits sautées de suite. En hiver, le seuil est relevé de 3 h de boost de la clim, servie en premier.",
           "forecast_factor": "La prévision est multipliée par ce facteur (0,7 si elle surestime d'environ 30 %)."
         }
       }
