@@ -116,9 +116,14 @@ Les modèles ESPHome cités plus haut y sont, dans `linky/`, `madoka/` et `tesla
 - Une entité `climate` s'y affiche en courbe de température. Chaque clim passe donc par un
   capteur binaire (aide Modèle) : `binary_sensor.clim_bas_allumee` et
   `binary_sensor.clim_haut_allumee`, allumés quand la clim n'est pas `off`.
-- Onglets « Aujourd'hui », « Solaire », « Appareils », « Économies & climat » : graphiques
-  `custom:apexcharts-card` (HACS). Pour modifier le tableau de bord, éditer
-  `examples/analyse.yaml`, puis l'envoyer dans HA (`lovelace/config/save`).
+- Onglets « Aujourd'hui », « Historique », « Solaire », « Appareils », « Chauffage » : graphiques
+  `custom:apexcharts-card` (HACS), chacun précédé d'une phrase « comment lire ». Pour modifier
+  le tableau de bord, éditer `examples/analyse.yaml`, puis l'envoyer dans HA (`lovelace/config/save`).
+- Tableau de pilotage « Gestion énergie » (`url_path: gestion-energie`), reflété par
+  [examples/dashboard.yaml](examples/dashboard.yaml) : phrase d'état en clair, appareils pilotés
+  avec la raison de chaque décision, bilan du jour, demain, Linky. Il n'utilise que les entités de
+  `energy_manager` ; les anciennes aides (`input_number.consommation_de_base_maison`,
+  `sensor.surplus_solaire_disponible`…) ne servent plus à rien.
 - Les compteurs « du jour » de `energy_manager` (soutirage, coût, économie, chauffe, filtration…)
   repartent de zéro **à 6 h**, pas à minuit. Graphique par jour tiré de l'historique :
   `group_by: max 1d` avec `span: {end: day, offset: +6h}`. Depuis les statistiques

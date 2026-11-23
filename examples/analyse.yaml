@@ -1,171 +1,5 @@
 title: Analyse énergie
 views:
-- title: Analyse
-  path: analyse
-  icon: mdi:chart-areaspline
-  type: sections
-  max_columns: 2
-  sections:
-  - type: grid
-    column_span: 2
-    cards:
-    - type: heading
-      heading: Puissances sur 24 h
-      icon: mdi:flash
-    - type: history-graph
-      title: Production, consommation et réseau
-      hours_to_show: 24
-      grid_options:
-        columns: full
-      entities:
-      - entity: sensor.gestionnaire_d_energie_production_solaire
-        name: Production
-      - entity: sensor.gestionnaire_d_energie_consommation
-        name: Consommation
-      - entity: sensor.gestionnaire_d_energie_puissance_reseau
-        name: Réseau (+ import / − export)
-      - entity: sensor.gestionnaire_d_energie_puissance_disponible
-        name: Disponible pour les équipements
-  - type: grid
-    column_span: 2
-    cards:
-    - type: heading
-      heading: Appareils
-      icon: mdi:power-plug
-    - type: history-graph
-      title: Consommation des appareils (W)
-      hours_to_show: 24
-      grid_options:
-        columns: full
-      entities:
-      - entity: sensor.chauffe_eau_puissance
-        name: Chauffe-eau
-      - entity: sensor.piscine_puissance
-        name: Piscine
-      - entity: sensor.puissance_clim_bas
-        name: Clim bas
-      - entity: sensor.prise_sdb_bas_puissance
-        name: Jacuzzi
-      - entity: sensor.priseboiteaulettre_puissance
-        name: Machine à laver
-      - entity: sensor.prise_imprimante_puissance
-        name: Imprimante 3D
-      - entity: sensor.prise_lampe_imprimante_puissance
-        name: Lampe imprimante 3D
-      - entity: sensor.prisepompe_puissance
-        name: Prise dehors devant (pompe)
-      - entity: sensor.grille_pain_prise_deconnectee_puissance
-        name: Grille-pain
-    - type: history-graph
-      title: Allumage des appareils
-      hours_to_show: 24
-      grid_options:
-        columns: full
-      entities:
-      - entity: switch.chauffe_eau_prise_1
-        name: Chauffe-eau
-      - entity: switch.piscine_prise_1
-        name: Piscine
-      - entity: binary_sensor.clim_bas_allumee
-        name: Clim bas
-      - entity: binary_sensor.clim_haut_allumee
-        name: Clim haut
-      - entity: switch.prise_imprimante_commutateur
-        name: Imprimante 3D
-      - entity: switch.prise_lampe_3dprinter
-        name: Lampe imprimante 3D
-      - entity: switch.prisepompe_commutateur
-        name: Prise dehors devant (pompe)
-  - type: grid
-    cards:
-    - type: heading
-      heading: Décisions de l'intégration
-      icon: mdi:robot
-    - type: history-graph
-      hours_to_show: 24
-      grid_options:
-        columns: full
-      entities:
-      - entity: sensor.gestionnaire_d_energie_etat_chauffe_eau
-        name: Chauffe-eau
-      - entity: sensor.gestionnaire_d_energie_etat_piscine
-        name: Piscine
-      - entity: sensor.gestionnaire_d_energie_etat_clim
-        name: Clim
-      - entity: sensor.gestionnaire_d_energie_tarif_actuel
-        name: Tarif
-    - type: entities
-      title: Bilan du jour
-      grid_options:
-        columns: full
-      entities:
-      - entity: sensor.gestionnaire_d_energie_cout_reseau_du_jour
-        name: Coût réseau
-      - entity: sensor.gestionnaire_d_energie_economie_solaire_du_jour
-        name: Économie solaire
-      - entity: sensor.gestionnaire_d_energie_soutirage_du_jour
-        name: Soutirage
-      - entity: sensor.gestionnaire_d_energie_injection_du_jour
-        name: Injection
-      - entity: sensor.gestionnaire_d_energie_autoconsommation_du_jour
-        name: Autoconsommation
-      - entity: sensor.gestionnaire_d_energie_consommation_des_appareils
-        name: Appareils (instantané)
-  - type: grid
-    cards:
-    - type: heading
-      heading: Énergie par jour
-      icon: mdi:calendar-month
-    - type: statistics-graph
-      title: Appareils (kWh / jour, 14 jours)
-      chart_type: bar
-      period: day
-      days_to_show: 14
-      stat_types:
-      - change
-      grid_options:
-        columns: full
-      entities:
-      - entity: sensor.prise_sdb_bas_consommation
-        name: Jacuzzi
-      - entity: sensor.priseboiteaulettre_consommation
-        name: Machine à laver
-      - entity: sensor.prise_imprimante_summation_delivered
-        name: Imprimante 3D
-      - entity: sensor.prise_lampe_imprimante_consommation
-        name: Lampe imprimante 3D
-      - entity: sensor.prisepompe_summation_delivered
-        name: Prise dehors devant (pompe)
-      - entity: sensor.grille_pain_prise_deconnectee_summation_delivered
-        name: Grille-pain
-    - type: statistics-graph
-      title: Réseau (kWh / jour, 14 jours)
-      chart_type: bar
-      period: day
-      days_to_show: 14
-      stat_types:
-      - max
-      grid_options:
-        columns: full
-      entities:
-      - entity: sensor.gestionnaire_d_energie_soutirage_du_jour
-        name: Soutirage
-      - entity: sensor.gestionnaire_d_energie_injection_du_jour
-        name: Injection
-      - entity: sensor.gestionnaire_d_energie_autoconsommation_du_jour
-        name: Autoconsommation
-    - type: history-graph
-      title: Températures
-      hours_to_show: 24
-      grid_options:
-        columns: full
-      entities:
-      - entity: sensor.gestionnaire_d_energie_temperature_interieure
-        name: Intérieur
-      - entity: sensor.daikinap85642_climatecontrol_outdoor_temperature
-        name: Extérieur
-      - entity: sensor.zhi_neng_tai_yang_neng_yu_lu_temperature
-        name: Piscine
 - title: Aujourd'hui
   path: aujourd-hui
   icon: mdi:white-balance-sunny
@@ -173,65 +7,63 @@ views:
   max_columns: 2
   sections:
   - type: grid
-    column_span: 2
     cards:
     - type: heading
-      heading: En ce moment
-      icon: mdi:flash
-    - type: grid
-      columns: 3
-      square: false
+      heading: Bilan depuis 6 h ce matin
+      icon: mdi:scale-balance
+    - type: markdown
+      content: '{% set a=states(''sensor.gestionnaire_d_energie_autoconsommation_du_jour'')|float(0) %}{% set s=states(''sensor.gestionnaire_d_energie_soutirage_du_jour'')|float(0)
+        %}{% set i=states(''sensor.gestionnaire_d_energie_injection_du_jour'')|float(0) %}Depuis 6 h ce matin, le
+        soleil a couvert **{{ (a/(a+s)*100)|round if a+s>0 else 0 }} %** des besoins de la maison{% if a+i>0 %}
+        et **{{ (a/(a+i)*100)|round }} %** de la production a été utilisée sur place{% endif %}.{% if i>0.5 %} {{
+        i|round(1)|string|replace(''.'','','') }} kWh sont partis au réseau sans être payés.{% endif %}'
       grid_options:
         columns: full
-      cards:
-      - type: gauge
-        entity: sensor.gestionnaire_d_energie_production_solaire
-        name: Production
-        unit: W
-        min: 0
-        max: 3240
-        needle: true
-        segments:
-        - from: 0
-          color: '#9e9e9e'
-        - from: 300
-          color: '#f5b400'
-        - from: 1500
-          color: '#43a047'
-      - type: gauge
-        entity: sensor.gestionnaire_d_energie_consommation
-        name: Consommation
-        unit: W
-        min: 0
-        max: 6000
-        needle: true
-        segments:
-        - from: 0
-          color: '#43a047'
-        - from: 2000
-          color: '#f5b400'
-        - from: 4000
-          color: '#e53935'
-      - type: gauge
-        entity: sensor.gestionnaire_d_energie_puissance_reseau
-        name: Réseau
-        unit: W
-        min: -3240
-        max: 6000
-        needle: true
-        segments:
-        - from: -3240
-          color: '#43a047'
-        - from: 0
-          color: '#f5b400'
-        - from: 2000
-          color: '#e53935'
-  - type: grid
+      text_only: true
+    - type: tile
+      entity: sensor.gestionnaire_d_energie_cout_reseau_du_jour
+      name: Payé au réseau
+      grid_options:
+        columns: 3
+      vertical: true
+      icon: mdi:cash-minus
+      color: red
+    - type: tile
+      entity: sensor.gestionnaire_d_energie_economie_solaire_du_jour
+      name: Économisé
+      grid_options:
+        columns: 3
+      vertical: true
+      icon: mdi:piggy-bank
+      color: green
+    - type: tile
+      entity: sensor.gestionnaire_d_energie_soutirage_du_jour
+      name: Acheté
+      grid_options:
+        columns: 3
+      vertical: true
+      icon: mdi:transmission-tower-import
+      color: red
+    - type: tile
+      entity: sensor.gestionnaire_d_energie_autoconsommation_du_jour
+      name: Soleil utilisé
+      grid_options:
+        columns: 3
+      vertical: true
+      icon: mdi:solar-power
+      color: amber
     column_span: 2
+  - type: grid
     cards:
     - type: heading
       heading: Puissances du jour
       icon: mdi:chart-areaspline
+    - type: markdown
+      content: '**Jaune** : ce que produisent les panneaux. **Bleu** : ce que consomme la maison. **Rouge** : le
+        réseau — au-dessus de zéro on achète, en dessous le soleil est en trop. Pointillé : prévision solaire.'
+      grid_options:
+        columns: full
+      text_only: true
     - type: custom:apexcharts-card
       grid_options:
         columns: full
@@ -285,21 +117,83 @@ views:
         stroke_dash: 6
         show:
           in_header: false
-  - type: grid
     column_span: 2
+  - type: grid
     cards:
     - type: heading
-      heading: Les 7 dernières journées
-      icon: mdi:calendar-week
+      heading: Qui a tourné, et pourquoi
+      icon: mdi:timeline-clock
+    - type: history-graph
+      hours_to_show: 24
+      grid_options:
+        columns: full
+      entities:
+      - entity: switch.chauffe_eau_prise_1
+        name: Chauffe-eau
+      - entity: sensor.gestionnaire_d_energie_etat_chauffe_eau
+        name: ↳ raison
+      - entity: switch.piscine_prise_1
+        name: Piscine
+      - entity: sensor.gestionnaire_d_energie_etat_piscine
+        name: ↳ raison
+      - entity: binary_sensor.clim_bas_allumee
+        name: Clim du bas
+      - entity: sensor.gestionnaire_d_energie_etat_clim
+        name: ↳ raison
+      - entity: sensor.gestionnaire_d_energie_tarif_actuel
+        name: Tarif
+    column_span: 2
+  - type: grid
+    cards:
+    - type: heading
+      heading: Allumage des autres appareils
+      icon: mdi:power-plug
+    - type: history-graph
+      hours_to_show: 24
+      grid_options:
+        columns: full
+      entities:
+      - entity: switch.chauffe_eau_prise_1
+        name: Chauffe-eau
+      - entity: switch.piscine_prise_1
+        name: Piscine
+      - entity: binary_sensor.clim_bas_allumee
+        name: Clim bas
+      - entity: binary_sensor.clim_haut_allumee
+        name: Clim haut
+      - entity: switch.prise_imprimante_commutateur
+        name: Imprimante 3D
+      - entity: switch.prise_lampe_3dprinter
+        name: Lampe imprimante 3D
+      - entity: switch.prisepompe_commutateur
+        name: Prise dehors devant (pompe)
+    column_span: 2
+- title: Historique
+  path: historique
+  icon: mdi:calendar-range
+  type: sections
+  max_columns: 2
+  sections:
+  - type: grid
+    cards:
+    - type: heading
+      heading: Argent
+      icon: mdi:cash
+    - type: markdown
+      content: 'Une « journée » va de **6 h à 6 h** : elle inclut la nuit en heures creuses qui suit. **Rouge**
+        : facture du réseau. **Vert** : ce que le soleil a évité de payer.'
+      grid_options:
+        columns: full
+      text_only: true
     - type: custom:apexcharts-card
       grid_options:
         columns: full
       header:
         show: true
-        title: Coût réseau et économie solaire (€ / journée)
+        title: Payé au réseau et économisé par le soleil (€ / journée, 14 jours)
         show_states: true
         colorize_states: true
-      graph_span: 7d
+      graph_span: 14d
       span:
         end: day
         offset: +6h
@@ -328,43 +222,82 @@ views:
       - entity: sensor.gestionnaire_d_energie_economie_solaire_du_jour
         name: Économie solaire
         color: '#43a047'
+    - type: tile
+      entity: sensor.gestionnaire_d_energie_economie_solaire_de_la_semaine
+      name: Économie de la semaine
+      grid_options:
+        columns: 4
+      vertical: true
+      icon: mdi:calendar-week
+      color: green
+    - type: tile
+      entity: sensor.gestionnaire_d_energie_economie_solaire_du_mois
+      name: Économie du mois
+      grid_options:
+        columns: 4
+      vertical: true
+      icon: mdi:calendar-month
+      color: green
+    - type: tile
+      entity: sensor.gestionnaire_d_energie_economie_solaire_de_l_annee
+      name: Économie de l'année
+      grid_options:
+        columns: 4
+      vertical: true
+      icon: mdi:calendar
+      color: green
+    column_span: 2
+  - type: grid
+    cards:
+    - type: heading
+      heading: Énergie
+      icon: mdi:lightning-bolt
+    - type: markdown
+      content: 'Plus la part **soleil utilisé** est grande, mieux c''est. L''**injection** est du soleil perdu (non
+        payé) : c''est elle que le gestionnaire cherche à réduire.'
+      grid_options:
+        columns: full
+      text_only: true
     - type: custom:apexcharts-card
       grid_options:
         columns: full
       header:
         show: true
-        title: Soutirage et autoconsommation (kWh / journée)
-        show_states: true
-        colorize_states: true
-      graph_span: 7d
+        title: D'où vient l'énergie (kWh / journée, 14 jours)
+      graph_span: 14d
       span:
         end: day
-        offset: +6h
+      stacked: true
       yaxis:
-      - min: 0
-        decimals: 1
+      - decimals: 1
       apex_config:
         chart:
-          height: 260
+          height: 300
         legend:
           show: true
         plotOptions:
           bar:
-            borderRadius: 4
+            borderRadius: 3
             columnWidth: 70%
       all_series_config:
         type: column
         float_precision: 1
-        group_by:
-          func: max
-          duration: 1d
+        statistics:
+          type: change
+          period: day
+          align: start
       series:
-      - entity: sensor.gestionnaire_d_energie_soutirage_du_jour
-        name: Soutirage
-        color: '#3b82f6'
       - entity: sensor.gestionnaire_d_energie_autoconsommation_du_jour
         name: Autoconsommation
         color: '#f5b400'
+      - entity: sensor.gestionnaire_d_energie_soutirage_du_jour
+        name: Soutirage
+        color: '#3b82f6'
+      - entity: sensor.gestionnaire_d_energie_injection_du_jour
+        name: Injection (en négatif)
+        color: '#43a047'
+        invert: true
+    column_span: 2
 - title: Solaire
   path: solaire
   icon: mdi:solar-power-variant
@@ -377,6 +310,12 @@ views:
     - type: heading
       heading: Production par jour
       icon: mdi:solar-power-variant
+    - type: markdown
+      content: Compare ce que les panneaux ont **réellement produit** à ce que la météo **prévoyait**. Un écart
+        régulier se corrige avec le « facteur de correction » dans les réglages.
+      grid_options:
+        columns: full
+      text_only: true
     - type: custom:apexcharts-card
       grid_options:
         columns: full
@@ -417,50 +356,17 @@ views:
         group_by:
           func: last
           duration: 1d
-    - type: custom:apexcharts-card
-      grid_options:
-        columns: full
-      header:
-        show: true
-        title: Consommation et injection (kWh / jour, 14 jours)
-      graph_span: 14d
-      span:
-        end: day
-      stacked: true
-      yaxis:
-      - decimals: 1
-      apex_config:
-        chart:
-          height: 300
-        legend:
-          show: true
-        plotOptions:
-          bar:
-            borderRadius: 3
-            columnWidth: 70%
-      all_series_config:
-        type: column
-        float_precision: 1
-        statistics:
-          type: change
-          period: day
-          align: start
-      series:
-      - entity: sensor.gestionnaire_d_energie_autoconsommation_du_jour
-        name: Autoconsommation
-        color: '#f5b400'
-      - entity: sensor.gestionnaire_d_energie_soutirage_du_jour
-        name: Soutirage
-        color: '#3b82f6'
-      - entity: sensor.gestionnaire_d_energie_injection_du_jour
-        name: Injection (en négatif)
-        color: '#43a047'
-        invert: true
   - type: grid
     cards:
     - type: heading
       heading: Taux du jour
       icon: mdi:percent-circle
+    - type: markdown
+      content: '**Jaune** : part de la production utilisée sur place (le reste est injecté gratuitement). **Vert**
+        : part des besoins de la maison couverts par le soleil.'
+      grid_options:
+        columns: full
+      text_only: true
     - type: custom:apexcharts-card
       grid_options:
         columns: full
@@ -500,6 +406,11 @@ views:
     - type: heading
       heading: Micro-onduleurs
       icon: mdi:solar-panel
+    - type: markdown
+      content: Une courbe nettement plus basse que les autres signale un panneau à l'ombre, sale ou en défaut.
+      grid_options:
+        columns: full
+      text_only: true
     - type: custom:apexcharts-card
       grid_options:
         columns: full
@@ -555,6 +466,11 @@ views:
     - type: heading
       heading: Puissance des appareils
       icon: mdi:flash
+    - type: markdown
+      content: Qui consomme, et quand. Le chauffe-eau (≈ 2,4 kW) et la clim sont les plus gros postes pilotés.
+      grid_options:
+        columns: full
+      text_only: true
     - type: custom:apexcharts-card
       grid_options:
         columns: full
@@ -770,82 +686,23 @@ views:
       - entity: sensor.gestionnaire_d_energie_piscine_filtration_du_jour
         name: Filtration de la piscine
         color: '#00acc1'
-- title: Économies & climat
-  path: economies-climat
-  icon: mdi:piggy-bank-outline
+- title: Chauffage
+  path: chauffage
+  icon: mdi:thermometer
   type: sections
   max_columns: 2
   sections:
   - type: grid
     cards:
     - type: heading
-      heading: Économies
-      icon: mdi:piggy-bank
-    - type: custom:apexcharts-card
+      heading: Températures et chauffage
+      icon: mdi:home-thermometer
+    - type: markdown
+      content: 'Les températures (intérieur, étage, extérieur) et la puissance de la clim du bas : on voit quand
+        elle chauffe et l''effet sur la pièce.'
       grid_options:
         columns: full
-      header:
-        show: true
-        title: Économie solaire et coût réseau (€ / journée, 10 jours)
-        show_states: true
-        colorize_states: true
-      graph_span: 10d
-      span:
-        end: day
-        offset: +6h
-      yaxis:
-      - min: 0
-        decimals: 2
-      apex_config:
-        chart:
-          height: 300
-        legend:
-          show: true
-        plotOptions:
-          bar:
-            borderRadius: 4
-            columnWidth: 70%
-      all_series_config:
-        type: column
-        float_precision: 2
-        group_by:
-          func: max
-          duration: 1d
-      series:
-      - entity: sensor.gestionnaire_d_energie_economie_solaire_du_jour
-        name: Économie solaire
-        color: '#43a047'
-      - entity: sensor.gestionnaire_d_energie_cout_reseau_du_jour
-        name: Coût réseau
-        color: '#e53935'
-    - type: custom:apexcharts-card
-      grid_options:
-        columns: full
-      header:
-        show: true
-        title: Prix de l'électricité (€ / kWh, 48 h)
-        show_states: true
-        colorize_states: true
-      graph_span: 48h
-      yaxis:
-      - decimals: 3
-      apex_config:
-        chart:
-          height: 200
-      series:
-      - entity: sensor.gestionnaire_d_energie_prix_actuel
-        name: Prix
-        type: area
-        curve: stepline
-        color: '#8e24aa'
-        opacity: 0.3
-        stroke_width: 2
-        float_precision: 4
-  - type: grid
-    cards:
-    - type: heading
-      heading: Climat
-      icon: mdi:thermometer
+      text_only: true
     - type: custom:apexcharts-card
       grid_options:
         columns: full
@@ -899,12 +756,18 @@ views:
         opacity: 0.2
         stroke_width: 1
         float_precision: 0
-  - type: grid
     column_span: 2
+  - type: grid
     cards:
     - type: heading
       heading: Chauffage et météo
-      icon: mdi:heat-pump
+      icon: mdi:weather-snowy
+    - type: markdown
+      content: 'Énergie de chauffage par jour, comparée à la température extérieure : plus il fait froid, plus la
+        clim consomme.'
+      grid_options:
+        columns: full
+      text_only: true
     - type: custom:apexcharts-card
       grid_options:
         columns: full
@@ -953,3 +816,4 @@ views:
           type: mean
           period: day
           align: start
+    column_span: 2

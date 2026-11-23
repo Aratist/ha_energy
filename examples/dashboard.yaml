@@ -1,180 +1,443 @@
-# Tableau de bord « Énergie » pour le Gestionnaire d'énergie solaire.
-#
-# Utilisation : Paramètres → Tableaux de bord → Ajouter un tableau de bord
-# → « Nouveau tableau de bord à partir de zéro », puis ⋮ → Modifier
-# → ⋮ → Éditeur de configuration brute, et coller ce fichier.
-#
-# Les identifiants ci-dessous sont ceux générés par HA en français.
-# À adapter :
-#   - switch.ballon_ecs / switch.pompe_piscine / climate.salon : vos équipements
-# Retirez les cartes des équipements que vous n'avez pas configurés.
-# Seules des cartes natives de Home Assistant sont utilisées (aucune carte HACS).
-
-title: Énergie
 views:
-  - title: Énergie
-    path: energie
-    icon: mdi:solar-power-variant
-    type: sections
-    max_columns: 3
-    sections:
-      - type: grid
-        cards:
-          - type: heading
-            heading: Maintenant
-            icon: mdi:flash
-          - type: gauge
-            entity: sensor.gestionnaire_d_energie_puissance_disponible
-            name: Disponible
-            unit: W
-            min: -3000
-            max: 6000
-            needle: true
-            severity:
-              red: -3000
-              yellow: 0
-              green: 500
-          - type: gauge
-            entity: sensor.gestionnaire_d_energie_puissance_reseau
-            name: Réseau
-            unit: W
-            min: -6000
-            max: 6000
-            needle: true
-            severity:
-              green: -6000
-              yellow: 0
-              red: 1000
-          - type: tile
-            entity: sensor.gestionnaire_d_energie_production_solaire
-            name: Production solaire
-            icon: mdi:solar-panel
-          - type: tile
-            entity: sensor.gestionnaire_d_energie_consommation
-            name: Consommation
-            icon: mdi:home-lightning-bolt
-          - type: tile
-            entity: sensor.gestionnaire_d_energie_tarif_actuel
-            name: Tarif
-            icon: mdi:clock-outline
-          - type: tile
-            entity: sensor.gestionnaire_d_energie_prix_actuel
-            name: Prix
-            icon: mdi:currency-eur
-          - type: tile
-            entity: switch.gestionnaire_d_energie_pilotage_automatique
-            name: Pilotage automatique
-            icon: mdi:robot
-            features:
-              - type: toggle
-          - type: tile
-            entity: select.gestionnaire_d_energie_saison
-            name: Saison
-            icon: mdi:sun-snowflake
-            features:
-              - type: select-options
-          - type: entities
-            title: Bilan du jour
-            grid_options:
-              columns: full
-            entities:
-              - entity: sensor.gestionnaire_d_energie_cout_reseau_du_jour
-                name: Coût réseau
-              - entity: sensor.gestionnaire_d_energie_economie_solaire_du_jour
-                name: Économie solaire
-              - entity: sensor.gestionnaire_d_energie_economie_solaire_de_la_semaine
-                name: Économie solaire (semaine)
-              - entity: sensor.gestionnaire_d_energie_economie_solaire_du_mois
-                name: Économie solaire (mois)
-              - entity: sensor.gestionnaire_d_energie_economie_solaire_de_l_annee
-                name: Économie solaire (année)
-              - entity: sensor.gestionnaire_d_energie_autoconsommation_du_jour
-                name: Autoconsommation
-              - entity: sensor.gestionnaire_d_energie_soutirage_du_jour
-                name: Soutirage
-              - entity: sensor.gestionnaire_d_energie_part_solaire_minimale_rentable
-                name: Part solaire rentable
+- title: Pilotage
+  path: solaire
+  icon: mdi:solar-power-variant
+  type: sections
+  max_columns: 3
+  sections:
+  - type: grid
+    cards:
+    - type: heading
+      heading: En ce moment
+      icon: mdi:flash
+    - type: markdown
+      content: '{% set g = states(''sensor.gestionnaire_d_energie_puissance_reseau'')|float(0) %}{% set pv = states(''sensor.gestionnaire_d_energie_production_solaire'')|float(0)
+        %}{% set hc = is_state(''sensor.gestionnaire_d_energie_tarif_actuel'',''offpeak'') %}{% if g < -50 %}##
+        🟢 {{ (-g)|round(-1)|int }} W de soleil en trop
 
-      - type: grid
-        cards:
-          - type: heading
-            heading: Équipements
-            icon: mdi:power-plug
-          - type: tile
-            entity: sensor.gestionnaire_d_energie_etat_chauffe_eau
-            name: Chauffe-eau
-            icon: mdi:water-boiler
-          - type: tile
-            entity: switch.ballon_ecs
-            name: Relais ballon
-          - type: tile
-            entity: sensor.gestionnaire_d_energie_etat_piscine
-            name: Piscine
-            icon: mdi:pool
-          - type: tile
-            entity: switch.pompe_piscine
-            name: Pompe
-          - type: tile
-            entity: sensor.gestionnaire_d_energie_etat_clim
-            name: Clim / chauffage
-            icon: mdi:air-conditioner
-          - type: tile
-            entity: climate.salon
-            name: Consigne
-            features:
-              - type: target-temperature
-          - type: entities
-            title: Aujourd'hui
-            grid_options:
-              columns: full
-            entities:
-              - entity: sensor.gestionnaire_d_energie_chauffe_eau_chauffe_du_jour
-                name: Chauffe du ballon
-              - entity: sensor.gestionnaire_d_energie_piscine_filtration_du_jour
-                name: Filtration effectuée
-              - entity: sensor.gestionnaire_d_energie_piscine_filtration_requise
-                name: Filtration requise
-          - type: entities
-            title: Pilotage automatique par équipement
-            grid_options:
-              columns: full
-            entities:
-              - entity: switch.gestionnaire_d_energie_chauffe_eau_automatique
-                name: Chauffe-eau
-              - entity: switch.gestionnaire_d_energie_piscine_automatique
-                name: Piscine
-              - entity: switch.gestionnaire_d_energie_clim_automatique
-                name: Clim
+        Le gestionnaire cherche à les utiliser : chauffage, chauffe-eau, piscine.{% elif pv > 100 and g <= 50 %}##
+        🟢 Le soleil couvre toute la maison
 
-      - type: grid
-        column_span: 1
-        cards:
-          - type: heading
-            heading: Historique
-            icon: mdi:chart-line
-          - type: history-graph
-            title: Puissances (24 h)
-            hours_to_show: 24
-            grid_options:
-              columns: full
-            entities:
-              - entity: sensor.gestionnaire_d_energie_production_solaire
-                name: Production
-              - entity: sensor.gestionnaire_d_energie_consommation
-                name: Consommation
-              - entity: sensor.gestionnaire_d_energie_puissance_reseau
-                name: Réseau
-              - entity: sensor.gestionnaire_d_energie_puissance_disponible
-                name: Disponible
-          - type: history-graph
-            title: Décisions (24 h)
-            hours_to_show: 24
-            grid_options:
-              columns: full
-            entities:
-              - entity: sensor.gestionnaire_d_energie_etat_chauffe_eau
-                name: Chauffe-eau
-              - entity: sensor.gestionnaire_d_energie_etat_piscine
-                name: Piscine
-              - entity: sensor.gestionnaire_d_energie_etat_clim
-                name: Clim
+        Rien n''est acheté au réseau.{% elif pv > 100 %}## 🟡 Soleil insuffisant : {{ g|round(-1)|int }} W achetés
+        au réseau
+
+        Le soleil fournit {{ pv|round(-1)|int }} W, le reste vient du réseau.{% else %}## {{ ''🔵'' if hc else ''🔴''
+        }} {{ g|round(-1)|int }} W achetés au réseau
+
+        Pas de production solaire en ce moment.{% endif %}
+
+
+        **{{ ''Heures creuses'' if hc else ''Heures pleines'' }}** · {{ states(''sensor.gestionnaire_d_energie_prix_actuel'')|float(0)|round(3)|string|replace(''.'','','')
+        }} €/kWh · saison **{{ ''hiver : chauffage servi en premier'' if is_state(''sensor.gestionnaire_d_energie_saison_active'',''winter'')
+        else ''été : chauffe-eau et piscine servis en premier'' }}**{% if state_attr(''sensor.gestionnaire_d_energie_production_solaire'',''stale'')
+        %}
+
+
+        ⚠️ La mesure des panneaux n''arrive plus : le gestionnaire ne compte plus sur le soleil.{% endif %}{% if
+        not is_state(''switch.gestionnaire_d_energie_pilotage_automatique'',''on'') %}
+
+
+        ⚠️ Pilotage automatique arrêté : aucun appareil n''est commandé.{% endif %}'
+      grid_options:
+        columns: full
+      text_only: true
+    - type: tile
+      entity: sensor.gestionnaire_d_energie_production_solaire
+      name: Soleil
+      grid_options:
+        columns: 4
+      vertical: true
+      icon: mdi:solar-power
+      color: amber
+    - type: tile
+      entity: sensor.gestionnaire_d_energie_consommation
+      name: Maison
+      grid_options:
+        columns: 4
+      vertical: true
+      icon: mdi:home-lightning-bolt
+      color: blue
+    - type: tile
+      entity: sensor.gestionnaire_d_energie_puissance_reseau
+      name: Réseau
+      grid_options:
+        columns: 4
+      vertical: true
+      icon: mdi:transmission-tower
+      color: red
+    - type: markdown
+      content: '*Réseau positif = achat, négatif = soleil en trop.*'
+      grid_options:
+        columns: full
+      text_only: true
+  - type: grid
+    cards:
+    - type: heading
+      heading: Appareils pilotés
+      icon: mdi:robot
+    - type: custom:mushroom-template-card
+      primary: Chauffage (clim du bas)
+      secondary: '{% set L={''surplus'':''En marche grâce au soleil'',''forced'':''En marche : rattrapage en heures
+        creuses'',''comfort'':''Température hors de la zone de confort'',''done'':''Terminé pour aujourd\''hui'',''waiting'':''À
+        l\''arrêt : attend assez de soleil'',''hold'':''État maintenu quelques minutes (protection)'',''manual'':''Mode
+        manuel : le gestionnaire n\''y touche pas'',''inactive'':''Non pilotable en ce moment''} %}{{ L.get(states(''sensor.gestionnaire_d_energie_etat_clim''),''État
+        inconnu'') }}
+
+        {% set s=states(''climate.daikinap85642'') %}{{ ''Éteinte'' if s==''off'' else ({''heat'':''Chauffage'',''cool'':''Froid''}.get(s,s)
+        ~ '' à '' ~ state_attr(''climate.daikinap85642'',''temperature'') ~ '' °C · '' ~ states(''sensor.puissance_clim_bas'')|int(0)
+        ~ '' W'') }} · pièce {{ states(''sensor.gestionnaire_d_energie_temperature_interieure'')|float(0)|round(1)
+        }} °C'
+      icon: mdi:heat-pump
+      icon_color: '{{ {''surplus'':''green'',''forced'':''blue'',''comfort'':''orange'',''done'':''teal'',''waiting'':''amber'',''hold'':''amber'',''manual'':''purple'',''inactive'':''disabled''}.get(states(''sensor.gestionnaire_d_energie_etat_clim''),''grey'')
+        }}'
+      multiline_secondary: true
+      grid_options:
+        columns: 12
+      tap_action:
+        action: more-info
+      entity: climate.daikinap85642
+    - type: custom:mushroom-template-card
+      primary: Chauffe-eau
+      secondary: '{% set L={''surplus'':''En marche grâce au soleil'',''forced'':''En marche : rattrapage en heures
+        creuses'',''comfort'':''Température hors de la zone de confort'',''done'':''Terminé pour aujourd\''hui'',''waiting'':''À
+        l\''arrêt : attend assez de soleil'',''hold'':''État maintenu quelques minutes (protection)'',''manual'':''Mode
+        manuel : le gestionnaire n\''y touche pas'',''inactive'':''Non pilotable en ce moment''} %}{{ L.get(states(''sensor.gestionnaire_d_energie_etat_chauffe_eau''),''État
+        inconnu'') }}
+
+        {{ ''Allumé · '' ~ states(''sensor.chauffe_eau_puissance'')|int(0) ~ '' W'' if is_state(''switch.chauffe_eau_prise_1'',''on'')
+        else ''Éteint'' }} · {{ states(''sensor.gestionnaire_d_energie_chauffe_eau_chauffe_du_jour'')|int(0) }}
+        min de chauffe depuis 6 h'
+      icon: mdi:water-boiler
+      icon_color: '{{ {''surplus'':''green'',''forced'':''blue'',''comfort'':''orange'',''done'':''teal'',''waiting'':''amber'',''hold'':''amber'',''manual'':''purple'',''inactive'':''disabled''}.get(states(''sensor.gestionnaire_d_energie_etat_chauffe_eau''),''grey'')
+        }}'
+      multiline_secondary: true
+      grid_options:
+        columns: 12
+      tap_action:
+        action: more-info
+      entity: switch.chauffe_eau_prise_1
+    - type: custom:mushroom-template-card
+      primary: Piscine (filtration)
+      secondary: '{% set L={''surplus'':''En marche grâce au soleil'',''forced'':''En marche : rattrapage en heures
+        creuses'',''comfort'':''Température hors de la zone de confort'',''done'':''Terminé pour aujourd\''hui'',''waiting'':''À
+        l\''arrêt : attend assez de soleil'',''hold'':''État maintenu quelques minutes (protection)'',''manual'':''Mode
+        manuel : le gestionnaire n\''y touche pas'',''inactive'':''Non pilotable en ce moment''} %}{{ L.get(states(''sensor.gestionnaire_d_energie_etat_piscine''),''État
+        inconnu'') }}
+
+        {{ ''Allumée'' if is_state(''switch.piscine_prise_1'',''on'') else ''Éteinte'' }} · {{ states(''sensor.gestionnaire_d_energie_piscine_filtration_du_jour'')|int(0)
+        }} min sur {{ states(''sensor.gestionnaire_d_energie_piscine_filtration_requise'')|int(0) }} prévues'
+      icon: mdi:pool
+      icon_color: '{{ {''surplus'':''green'',''forced'':''blue'',''comfort'':''orange'',''done'':''teal'',''waiting'':''amber'',''hold'':''amber'',''manual'':''purple'',''inactive'':''disabled''}.get(states(''sensor.gestionnaire_d_energie_etat_piscine''),''grey'')
+        }}'
+      multiline_secondary: true
+      grid_options:
+        columns: 12
+      tap_action:
+        action: more-info
+      entity: switch.piscine_prise_1
+    - type: markdown
+      content: '**Laisser le gestionnaire commander :**'
+      grid_options:
+        columns: full
+      text_only: true
+    - type: tile
+      entity: switch.gestionnaire_d_energie_clim_automatique
+      name: Chauffage
+      grid_options:
+        columns: 4
+      vertical: true
+      tap_action:
+        action: toggle
+      icon_tap_action:
+        action: toggle
+    - type: tile
+      entity: switch.gestionnaire_d_energie_chauffe_eau_automatique
+      name: Chauffe-eau
+      grid_options:
+        columns: 4
+      vertical: true
+      tap_action:
+        action: toggle
+      icon_tap_action:
+        action: toggle
+    - type: tile
+      entity: switch.gestionnaire_d_energie_piscine_automatique
+      name: Piscine
+      grid_options:
+        columns: 4
+      vertical: true
+      tap_action:
+        action: toggle
+      icon_tap_action:
+        action: toggle
+    - type: tile
+      entity: switch.gestionnaire_d_energie_pilotage_automatique
+      name: Tout le pilotage
+      grid_options:
+        columns: 12
+      tap_action:
+        action: toggle
+      icon: mdi:robot
+    - type: tile
+      entity: select.gestionnaire_d_energie_saison
+      name: Saison
+      grid_options:
+        columns: 12
+      features:
+      - type: select-options
+      features_position: bottom
+      icon: mdi:sun-snowflake-variant
+    - type: markdown
+      content: 'Bouton éteint : l''appareil reste comme tu le règles, le gestionnaire n''y touche plus.'
+      grid_options:
+        columns: full
+      text_only: true
+  - type: grid
+    cards:
+    - type: heading
+      heading: Bilan du jour
+      icon: mdi:scale-balance
+    - type: markdown
+      content: '{% set a=states(''sensor.gestionnaire_d_energie_autoconsommation_du_jour'')|float(0) %}{% set s=states(''sensor.gestionnaire_d_energie_soutirage_du_jour'')|float(0)
+        %}{% set i=states(''sensor.gestionnaire_d_energie_injection_du_jour'')|float(0) %}Depuis 6 h ce matin, le
+        soleil a couvert **{{ (a/(a+s)*100)|round if a+s>0 else 0 }} %** des besoins de la maison{% if a+i>0 %}
+        et **{{ (a/(a+i)*100)|round }} %** de la production a été utilisée sur place{% endif %}.{% if i>0.5 %} {{
+        i|round(1)|string|replace(''.'','','') }} kWh sont partis au réseau sans être payés.{% endif %}'
+      grid_options:
+        columns: full
+      text_only: true
+    - type: tile
+      entity: sensor.gestionnaire_d_energie_cout_reseau_du_jour
+      name: Payé au réseau
+      grid_options:
+        columns: 6
+      icon: mdi:cash-minus
+      color: red
+    - type: tile
+      entity: sensor.gestionnaire_d_energie_economie_solaire_du_jour
+      name: Économisé par le soleil
+      grid_options:
+        columns: 6
+      icon: mdi:piggy-bank
+      color: green
+    - type: tile
+      entity: sensor.gestionnaire_d_energie_soutirage_du_jour
+      name: Acheté au réseau
+      grid_options:
+        columns: 6
+      icon: mdi:transmission-tower-import
+      color: red
+    - type: tile
+      entity: sensor.gestionnaire_d_energie_autoconsommation_du_jour
+      name: Soleil utilisé
+      grid_options:
+        columns: 6
+      icon: mdi:solar-power
+      color: amber
+    - type: tile
+      entity: sensor.gestionnaire_d_energie_economie_solaire_du_mois
+      name: Économie du mois
+      grid_options:
+        columns: 6
+      icon: mdi:calendar-month
+      color: green
+    - type: tile
+      entity: sensor.gestionnaire_d_energie_economie_solaire_de_l_annee
+      name: Économie de l'année
+      grid_options:
+        columns: 6
+      icon: mdi:calendar
+      color: green
+  - type: grid
+    cards:
+    - type: heading
+      heading: La journée en courbes
+      icon: mdi:chart-areaspline
+    - type: custom:apexcharts-card
+      grid_options:
+        columns: full
+      header:
+        show: true
+        title: Production, consommation et réseau
+        show_states: true
+        colorize_states: true
+      graph_span: 24h
+      span:
+        start: day
+      now:
+        show: true
+        label: Maintenant
+      yaxis:
+      - decimals: 0
+      apex_config:
+        chart:
+          height: 340
+        legend:
+          show: true
+        fill:
+          type: gradient
+          gradient:
+            opacityFrom: 0.55
+            opacityTo: 0.05
+      all_series_config:
+        stroke_width: 2
+        curve: smooth
+        float_precision: 0
+        group_by:
+          func: avg
+          duration: 10min
+      series:
+      - entity: sensor.gestionnaire_d_energie_production_solaire
+        name: Production
+        type: area
+        color: '#f5b400'
+      - entity: sensor.gestionnaire_d_energie_consommation
+        name: Consommation
+        type: area
+        color: '#3b82f6'
+      - entity: sensor.gestionnaire_d_energie_puissance_reseau
+        name: Réseau (+ import / − export)
+        type: line
+        color: '#e53935'
+      - entity: sensor.power_production_now
+        name: Prévision solaire
+        type: line
+        color: '#9e9e9e'
+        stroke_dash: 6
+        show:
+          in_header: false
+    column_span: 2
+  - type: grid
+    cards:
+    - type: heading
+      heading: Demain
+      icon: mdi:weather-partly-cloudy
+    - type: custom:mushroom-template-card
+      primary: Production prévue demain
+      secondary: '{% set f=states(''sensor.energy_production_tomorrow'')|float(0) %}{% set n=''sensor.gestionnaire_d_energie_etat_chauffe_eau''
+        %}{{ f|round(1)|string|replace(''.'','','') }} kWh prévus · {{ ''beau temps'' if f>=7 else (''soleil moyen''
+        if f>=4 else ''peu de soleil'') }}
+
+        {{ ''Chauffe-eau : nuit sautée, il attendra le soleil'' if state_attr(n,''nuit_sautee'') else ''Chauffe-eau
+        : chauffé cette nuit en heures creuses'' }}'
+      icon: mdi:solar-power-variant
+      icon_color: '{{ ''green'' if states(''sensor.energy_production_tomorrow'')|float(0)>=7 else (''amber'' if
+        states(''sensor.energy_production_tomorrow'')|float(0)>=4 else ''grey'') }}'
+      multiline_secondary: true
+      grid_options:
+        columns: 12
+      tap_action:
+        action: more-info
+      entity: sensor.energy_production_tomorrow
+    - type: tile
+      entity: sensor.ville_daily_precipitation
+      name: Pluie du jour
+      grid_options:
+        columns: 6
+    - type: tile
+      entity: sensor.duree_pluie_aujourd_hui
+      name: Durée de pluie
+      grid_options:
+        columns: 6
+  - type: grid
+    cards:
+    - type: heading
+      heading: Qui a tourné, et pourquoi
+      icon: mdi:timeline-clock
+    - type: history-graph
+      hours_to_show: 24
+      grid_options:
+        columns: full
+      entities:
+      - entity: switch.chauffe_eau_prise_1
+        name: Chauffe-eau
+      - entity: sensor.gestionnaire_d_energie_etat_chauffe_eau
+        name: ↳ raison
+      - entity: switch.piscine_prise_1
+        name: Piscine
+      - entity: sensor.gestionnaire_d_energie_etat_piscine
+        name: ↳ raison
+      - entity: binary_sensor.clim_bas_allumee
+        name: Clim du bas
+      - entity: sensor.gestionnaire_d_energie_etat_clim
+        name: ↳ raison
+      - entity: sensor.gestionnaire_d_energie_tarif_actuel
+        name: Tarif
+    column_span: 2
+  - type: grid
+    cards:
+    - type: heading
+      heading: Chauffage
+      icon: mdi:thermometer
+    - type: thermostat
+      entity: climate.daikinap85642
+      name: Clim du bas
+      grid_options:
+        columns: full
+    - type: markdown
+      content: 'Zone de confort d''hiver : **19 à 23 °C**. Avec du soleil en trop, le gestionnaire allume la clim
+        et chauffe jusqu''à 23 °C, puis l''éteint. Si tu l''éteins à la main, il ne la rallume pas avant le lendemain
+        6 h.'
+      grid_options:
+        columns: full
+      text_only: true
+  - type: grid
+    cards:
+    - type: heading
+      heading: Mesure du compteur Linky
+      icon: mdi:meter-electric
+    - type: tile
+      entity: sensor.puissance_soutiree_reseau
+      name: Soutirage
+      grid_options:
+        columns: 12
+    - type: tile
+      entity: sensor.linky_wifi_signal
+      name: Wi-Fi passerelle Linky
+      color: orange
+      grid_options:
+        columns: 6
+    - type: tile
+      entity: sensor.linky_disponibilite_24_h
+      name: Disponibilité 24 h
+      icon: mdi:check-network
+      color: green
+      grid_options:
+        columns: 6
+    - type: tile
+      entity: sensor.linky_disponibilite_7_jours
+      name: Disponibilité 7 jours
+      icon: mdi:calendar-check
+      color: green
+      grid_options:
+        columns: 6
+    - type: tile
+      entity: sensor.linky_coupures_24_h
+      name: Coupures 24 h
+      icon: mdi:lan-disconnect
+      color: red
+      grid_options:
+        columns: 6
+    - type: history-graph
+      title: Consommation disponible (24 h)
+      hours_to_show: 24
+      entities:
+      - entity: binary_sensor.linky_consommation_disponible
+        name: Disponible
+      grid_options:
+        columns: full
+    column_span: 2
+  - type: grid
+    cards:
+    - type: heading
+      heading: Réglages
+      icon: mdi:cog
+    - type: markdown
+      content: 'Prix, heures creuses, zone de confort, durées de chauffe et de filtration se règlent dans **[Paramètres
+        → Appareils et services → Gestionnaire d''énergie → Configurer](/config/integrations/integration/energy_manager)**.
+
+
+        Analyse détaillée : **[Analyse énergie](/energie-analyse)**.'
+      grid_options:
+        columns: full
+      text_only: true
